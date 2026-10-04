@@ -786,13 +786,21 @@ window.SilencioAct2 = (() => {
                  fetch('assets/3d/bar_camera.json').then(r => r.json())]).then(([T, P, C]) => {
       const renderer = new T.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
       renderer.outputColorSpace = T.SRGBColorSpace;
+      renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
       const scene = new T.Scene();
+      // the back bar's lights: a warm key from above and behind, so the shadows fall forward onto the mat, toward us
+      const key = new T.DirectionalLight(0xffc98a, 1.6); key.position.set(-0.25, 1.9, -1.4); key.target.position.set(0, 0, 0.05);
+      key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.002; key.shadow.radius = 6;
+      Object.assign(key.shadow.camera, { left: -0.45, right: 0.45, top: 0.45, bottom: -0.45, near: 0.5, far: 4 });
+      scene.add(key, key.target);
+      const catcher = new T.Mesh(new T.PlaneGeometry(1.2, 0.75), new T.ShadowMaterial({ opacity: 0.42 }));
+      catcher.rotation.x = -Math.PI / 2; catcher.position.y = 0.0085; catcher.receiveShadow = true; scene.add(catcher);
       const cam = new T.PerspectiveCamera(C.fov_v_deg, IW / IH, 0.05, 40);
       cam.position.fromArray(C.position_m); cam.up.fromArray(C.up);
       cam.lookAt(new T.Vector3().fromArray(C.position_m).add(new T.Vector3().fromArray(C.forward)));
       const st = { T, renderer, scene, cam, P, dirty: true, bottle: null, glass: null, liquid: null, stream: null, level: -1, shadows: [] };
       const pm = new T.PMREMGenerator(renderer);
-      new T.TextureLoader().load('assets/3d/env.png', tex => {
+      new T.TextureLoader().load('assets/3d/env_room.jpg', tex => {
         tex.mapping = T.EquirectangularReflectionMapping; tex.colorSpace = T.SRGBColorSpace;
         scene.environment = pm.fromEquirectangular(tex).texture; tex.dispose(); st.dirty = true;
       });
@@ -806,15 +814,24 @@ window.SilencioAct2 = (() => {
         st.bottle.rotation.y = 0.30;                       // three-quarter, as in the reference
         st.bottleHome = { p: st.bottle.position.clone(), r: st.bottle.rotation.z };
         st.glassHome = st.glass.position.clone();
+        const extra = [];
         g.scene.traverse(o => {
           if (!o.isMesh) return;
+          o.castShadow = true;
           const n = o.material.name || '';
-          if (n.startsWith('Gold')) o.material.envMapIntensity = 2.1;
+          if (n.startsWith('Gold')) { o.material.envMapIntensity = 3.0; o.material.roughness = Math.max(o.material.roughness, 0.12); o.material.color.setRGB(1.0, 0.72, 0.33); }
           // crystal over a photograph: premultiplied blend + alpha 0 = its reflections are simply added on the bar behind
           if (n === 'Crystal') {
             o.material = new T.MeshPhysicalMaterial({ color: 0x000000, roughness: 0.015, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.01,
               envMapIntensity: 3.2, transparent: true, depthWrite: false, side: T.DoubleSide, premultipliedAlpha: true });
             o.material.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>', '#include <dithering_fragment>\n  gl_FragColor.a = 0.0;'); };
+            o.renderOrder = 3;
+            // ...over a body pass that gives the glass its presence: faint in the middle, darker toward the edges
+            // (where real glass bends the darker room into view), so the cup reads as a solid object
+            const body = new T.MeshStandardMaterial({ color: 0x2a1c12, roughness: 0.1, metalness: 0, transparent: true, depthWrite: false, side: T.FrontSide });
+            body.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>',
+              '#include <dithering_fragment>\n  float fr = pow(1.0 - abs(dot(normalize(vViewPosition), normal)), 2.2);\n  gl_FragColor.a = mix(0.07, 0.62, fr);'); };
+            const b2 = new T.Mesh(o.geometry, body); b2.renderOrder = 1; extra.push([o.parent, b2, o]);
           }
           if (n === 'Frost') {
             o.material = new T.MeshStandardMaterial({ color: 0xf2efe9, roughness: 0.65, metalness: 0, transparent: true, opacity: 0.8, depthWrite: false, side: T.DoubleSide });
@@ -822,19 +839,21 @@ window.SilencioAct2 = (() => {
             new T.TextureLoader().load('assets/3d/emblem_frost.png', tx => { tx.colorSpace = T.SRGBColorSpace; tx.flipY = false; o.material.map = tx; o.material.needsUpdate = true; st.dirty = true; });
           }
         });
+        for (const [parent, m2, src] of extra) { m2.position.copy(src.position); m2.quaternion.copy(src.quaternion); m2.scale.copy(src.scale); parent.add(m2); }
         // soft contact shadows (a radial gradient on the mat), following each object
         const sc = document.createElement('canvas'); sc.width = sc.height = 128; const cx = sc.getContext('2d');
         const gr = cx.createRadialGradient(64, 64, 4, 64, 64, 62); gr.addColorStop(0, 'rgba(0,0,0,0.75)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
         cx.fillStyle = gr; cx.fillRect(0, 0, 128, 128);
         const stex = new T.CanvasTexture(sc);
-        for (const [obj, sx, sz] of [[st.bottle, P.bottle.half_width * 3.0, P.bottle.half_depth * 3.4], [st.glass, 0.11, 0.11]]) {
-          const m = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: stex, transparent: true, depthWrite: false, opacity: 0.55 }));
+        for (const [obj, sx, sz] of [[st.bottle, P.bottle.half_width * 2.6, P.bottle.half_depth * 3.0], [st.glass, P.glass.height * 0.62, P.glass.height * 0.62]]) {
+          const m = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: stex, transparent: true, depthWrite: false, opacity: 0.5 }));
           m.rotation.x = -Math.PI / 2; m.scale.set(sx, sz, 1); m.position.set(obj.position.x, P.mat_top + 0.0006, obj.position.z); m.renderOrder = -1;
-          scene.add(m); st.shadows.push({ m, obj, base: 0.55 });
+          scene.add(m); st.shadows.push({ m, obj, base: 0.5 });
         }
-        st.liquidMat = new T.MeshPhysicalMaterial({ color: 0xb8651c, roughness: 0.08, metalness: 0, transparent: true, opacity: 0.88,
-          envMapIntensity: 1.4, clearcoat: 1, side: T.DoubleSide, depthWrite: false });
-        st.streamMat = new T.MeshPhysicalMaterial({ color: 0xc97a2a, roughness: 0.05, transparent: true, opacity: 0.92, envMapIntensity: 1.6, clearcoat: 1 });
+        // a deep red pour (wine-dark, the light through it warming at the surface)
+        st.liquidMat = new T.MeshPhysicalMaterial({ color: 0x6e0a12, roughness: 0.06, metalness: 0, transparent: true, opacity: 0.9,
+          envMapIntensity: 1.5, clearcoat: 1, side: T.DoubleSide, depthWrite: false, emissive: 0x2a0204 });
+        st.streamMat = new T.MeshPhysicalMaterial({ color: 0x8a0f18, roughness: 0.04, transparent: true, opacity: 0.88, envMapIntensity: 1.8, clearcoat: 1, emissive: 0x300306 });
         st.dirty = true;
       });
       // the canvas is scaled up 1.2x with the card, so render 1.2x the pixels to stay sharp
@@ -842,7 +861,7 @@ window.SilencioAct2 = (() => {
       st.resize();
       glState = st;
       addEventListener('pointermove', e => { cursorX = e.clientX / innerWidth - 0.5; }, { passive: true });
-    }).catch(() => { glState = false; });
+    }).catch(e => { console.warn('SILENCIO props:', e); glState = false; });
   }
 
   function bowlInner(P, z) {                               // inner radius of the bowl at height z (glass-local metres)
@@ -861,29 +880,55 @@ window.SilencioAct2 = (() => {
     st.liquid = new T.Mesh(new T.LatheGeometry(pts, 64), st.liquidMat); st.liquid.renderOrder = 1; st.glass.add(st.liquid);
   }
   function stage(st, sl, pr) {                             // sl: slide-in 0..1, pr: pour 0..1
-    const { T, P } = st, b = st.bottle, home = st.bottleHome, H = P.bottle.height, th = 112 * Math.PI / 180, S = T.MathUtils.smoothstep;
-    // pushed into the frame along the counter: a firm start that eases to a stop, the bottle first, the glass a beat later
-    const kb = 1 - Math.pow(1 - S(sl, 0, 0.8), 3), kg = 1 - Math.pow(1 - S(sl, 0.2, 1), 3);
-    const off = 1.1;                                       // metres off to each side: outside the landed view
-    st.glass.position.set(st.glassHome.x + (1 - kg) * off, st.glassHome.y, st.glassHome.z);
+    const { T, P } = st, b = st.bottle, home = st.bottleHome, H = P.bottle.height, th = 118 * Math.PI / 180, S = T.MathUtils.smoothstep;
+    // pushed into the frame along the counter: a firm shove that slides to a stop (friction), then a small rock as it settles;
+    // the bottle first, the glass a beat later
+    const push = (u) => 1 - Math.pow(1 - u, 3.2);
+    const ub = S(sl, 0, 0.7), ug = S(sl, 0.18, 0.88);
+    const rock = (u0, amp) => { const q = Math.max(0, sl - u0) / (1 - u0); return amp * Math.sin(q * Math.PI * 3.2) * Math.exp(-q * 4.5) * (sl > u0 ? 1 : 0); };
+    const off = 0.9;                                       // metres off to each side: outside the landed view
+    st.glass.position.set(st.glassHome.x + (1 - push(ug)) * off, st.glassHome.y, st.glassHome.z);
+    st.glass.rotation.z = rock(0.88, 0.05);
     const gb = st.glass.position, rimY = gb.y + P.glass.height;
-    const hover = new T.Vector3(gb.x - H * Math.sin(th), rimY + 0.055 - H * Math.cos(th), gb.z);
-    const k = pr < 0.82 ? S(pr, 0, 0.45) : 1 - S(pr, 0.82, 1);
-    const hx = home.p.x - (1 - kb) * off;
+    // the pour pose: the mouth over the bowl, a little above the rim
+    const hover = new T.Vector3(gb.x - H * Math.sin(th) - 0.012, rimY + 0.035 - H * Math.cos(th), gb.z);
+    const k = pr < 0.84 ? S(pr, 0, 0.42) : 1 - S(pr, 0.84, 1);
+    const hx = home.p.x - (1 - push(ub)) * off;
     b.position.set(lerp(hx, hover.x, k), lerp(home.p.y, hover.y, 1 - Math.pow(1 - k, 2)), lerp(home.p.z, hover.z, k));
-    b.rotation.z = home.r - th * Math.pow(k, 1.6);
-    const flow = S(pr, 0.40, 0.48) * (1 - S(pr, 0.76, 0.82));
-    const level = (P.glass.fill_max - P.glass.bowl_floor) * S(pr, 0.44, 0.84);
+    b.rotation.z = home.r - th * Math.pow(k, 1.5) + rock(0.7, 0.07) * (1 - k);
+    // liquid leaves the bottle once the neck is below horizontal; flow swells and eases off
+    const flow = S(pr, 0.36, 0.46) * (1 - S(pr, 0.74, 0.84));
+    const level = (P.glass.fill_max - P.glass.bowl_floor) * S(pr, 0.42, 0.86);
     setLevel(st, level);
+    if (st.liquid) {                                     // the surface is disturbed while the stream lands, then calms
+      const wob = flow * 0.06 * Math.sin(pr * 90);
+      st.liquid.rotation.x = wob; st.liquid.rotation.z = wob * 0.6;
+    }
     if (st.stream) { st.scene.remove(st.stream); st.stream.geometry.dispose(); st.stream = null; }
     if (flow > 0.01) {
       b.updateMatrixWorld(true);
-      const mouth = new T.Vector3(0, H + 0.004, 0).applyMatrix4(b.matrixWorld);
-      const surf = new T.Vector3(gb.x, gb.y + P.glass.bowl_floor + level, gb.z);
-      const top = pr < 0.6 ? mouth : mouth.clone().lerp(surf, S(pr, 0.76, 0.82));
-      const end = mouth.clone().lerp(surf, S(pr, 0.40, 0.47));
-      const mid = top.clone().lerp(end, 0.5).add(new T.Vector3(0.008, 0, 0));
-      st.stream = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([top, mid, end]), 24, 0.0032, 10), st.streamMat);
+      const mouth = new T.Vector3(0, H + 0.002, 0).applyMatrix4(b.matrixWorld);
+      const dir = new T.Vector3(0, 1, 0).transformDirection(b.matrixWorld);
+      const surfY = gb.y + P.glass.bowl_floor + level;
+      // a ballistic arc: leaves the mouth along the neck, gravity pulls it into the bowl
+      const v0 = dir.clone().multiplyScalar(0.28 + 0.25 * flow), g = 9.81, pts = [];
+      const head = S(pr, 0.36, 0.44), tail = S(pr, 0.76, 0.84);  // the stream's front falls in, then its back end lets go
+      let tEnd = 0.02; for (; tEnd < 0.6; tEnd += 0.005) if (mouth.y + v0.y * tEnd - 0.5 * g * tEnd * tEnd <= surfY) break;
+      const t0 = tEnd * tail, t1 = tEnd * Math.max(head, tail + 0.05);
+      for (let i = 0; i <= 18; i++) {
+        const tt = t0 + (t1 - t0) * i / 18;
+        pts.push(new T.Vector3(mouth.x + v0.x * tt, mouth.y + v0.y * tt - 0.5 * g * tt * tt, mouth.z + v0.z * tt));
+      }
+      const R = 0.0034 * (0.6 + 0.4 * flow), geo = new T.TubeGeometry(new T.CatmullRomCurve3(pts), 36, R, 10);
+      // it thins as it falls and speeds up (continuity: faster flow, narrower stream)
+      const pos = geo.attributes.position, ring = 11;
+      for (let i = 0; i <= 36; i++) {
+        const c = new T.Vector3(); for (let r = 0; r < ring; r++) c.add(new T.Vector3().fromBufferAttribute(pos, i * ring + r)); c.divideScalar(ring);
+        const taper = 1 - 0.45 * (i / 36);
+        for (let r = 0; r < ring; r++) { const q = new T.Vector3().fromBufferAttribute(pos, i * ring + r).sub(c).multiplyScalar(taper).add(c); pos.setXYZ(i * ring + r, q.x, q.y, q.z); }
+      }
+      pos.needsUpdate = true; geo.computeVertexNormals();
+      st.stream = new T.Mesh(geo, st.streamMat); st.stream.castShadow = true;
       st.scene.add(st.stream);
     }
     for (const s of st.shadows) {
