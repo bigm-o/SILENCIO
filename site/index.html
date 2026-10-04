@@ -1084,7 +1084,7 @@ window.SilencioVision = (() => {
     sec.style.translate = `0 ${(1 - k) * vh}px`;
     for (const el of ctx.lift) el.style.translate = on ? `0 ${-k * vh}px` : '';          // the bar scene scrolls away
     // the emblem: leaves the hero's nav and glides from the top-left back to the top centre
-    const kl = io3(seg(x, B.cross * 0.15, B.cross * 0.95));
+    const kl = io3(seg(x, B.cross, B.cross + 40));                                   // only once the card section has landed
     ctx.logo.style.visibility = on ? 'hidden' : '';
     vlogo.style.visibility = on ? 'visible' : 'hidden';
     vlogo.style.translate = `${toLeft * (1 - kl)}px 0`;
@@ -1101,7 +1101,9 @@ window.SilencioVision = (() => {
     if (!st || !st.ready || k <= 0) return;
     const dt = Math.min(0.05, deltaMs / 1000), ins = mode === 'inspect';
     st.inspectK = damp(st.inspectK, ins ? 1 : 0, 6, dt);
-    if (!ins) st.yawT += dt * (2 * Math.PI / 16);                                     // one slow turn every 16 s
+    // slow while a face is towards you, quick through the edge: angular speed rises with sin^4(yaw)
+    // (0.22 rad/s face-on, 2.2 rad/s edge-on: a few seconds on each face, under a second through the edge)
+    if (!ins) { const e = Math.sin(st.yawT) ** 2; st.yawT += dt * (0.22 + (2.2 - 0.22) * e * e); }
     st.lift = damp(st.lift, st.hover && !ins ? 1 : 0, 7, dt);
     const tgt = ins ? st.insp : st.rest;
     st.pos.x = damp(st.pos.x, tgt.x, 5, dt); st.pos.y = damp(st.pos.y, tgt.y, 5, dt); st.pos.s = damp(st.pos.s, tgt.s, 5, dt);
