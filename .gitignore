@@ -1,0 +1,28 @@
+# Blender files
+blend/
+
+# Render frames
+frames/
+
+# Raw assets & scripts
+assets/
+scripts/
+logs/
+tests/
+previews/
+refs/
+data/
+
+# Blender/Python cache
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Internal tooling
+.impeccable/
+
+# Node
+node_modules/
+

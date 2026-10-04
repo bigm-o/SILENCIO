@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>SILÊNCIO · 1 · Spill</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/hero.css">
+<link rel="preload" as="image" href="assets/o1/fg.webp">
+<style>
+/* 1 · Spill: warm light leaks from a hidden bar behind the chrome figure. The bust and the room separate with the cursor,
+   and a highlight travels across the chrome. */
+.bg img{filter:brightness(.78) saturate(.9)}
+.shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(11,11,13,.94) 0%,rgba(11,11,13,.7) 30%,rgba(11,11,13,.2) 52%,transparent 64%),linear-gradient(0deg,rgba(11,11,13,.6),transparent 30%)}
+.ember{position:absolute;right:18%;top:8%;width:46%;height:80%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(closest-side,rgba(255,170,90,.18),transparent);animation:breathe 7s ease-in-out infinite alternate}
+@keyframes breathe{from{opacity:.55}to{opacity:1}}
+.sheen{position:absolute;inset:0;mix-blend-mode:soft-light;opacity:.9;
+  background:linear-gradient(105deg,transparent calc(var(--hx,60%) - 14%),rgba(255,255,255,.85) var(--hx,60%),transparent calc(var(--hx,60%) + 14%));
+  -webkit-mask:url(assets/o1/fg.webp) center/cover no-repeat;mask:url(assets/o1/fg.webp) center/cover no-repeat}
+.copy{position:absolute;z-index:10;left:var(--pad);top:50%;transform:translateY(-46%);max-width:560px}
+.copy h1{margin-top:26px;font:500 clamp(64px,6.6vw,116px)/.96 'Cormorant Garamond',serif;letter-spacing:-.015em}
+.copy h1 em{display:block;font-style:italic;color:#DADAE0;padding-bottom:.08em}
+.copy p:not(.label){margin-top:26px;color:var(--muted);font-size:16px;max-width:36ch}
+.ctas{margin-top:42px;display:flex;align-items:center;gap:36px}
+@media (prefers-reduced-motion:reduce){.ember{animation:none}.sheen{display:none}}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<section class="hero" aria-label="SILÊNCIO">
+  <div class="layer bg" data-depth="10"><img src="assets/o1/bg.webp" alt=""></div>
+  <div class="ember" aria-hidden="true" data-depth="16"></div>
+  <div class="layer fg" data-depth="-18"><img src="assets/o1/fg.webp" alt="A chrome Hellenistic bust, its eyes covered by an obsidian band engraved with the SILÊNCIO emblem"><i class="sheen" aria-hidden="true"></i></div>
+  <div class="shade" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="Main" data-reveal="1.4">
+    <a class="logo" href="#" aria-label="SILÊNCIO home"><img src="assets/emblem.webp" alt="" data-intro-logo-slot></a>
+    <div class="links"><a href="#">The Club</a><a href="#">Dining</a><a href="#">Lounge</a><a href="#">Gatherings</a></div>
+    <a class="btn outline cta" href="#">Request an introduction</a>
+  </nav>
+
+  <div class="copy">
+    <p class="label" data-reveal>Private membership club</p>
+    <h1 data-reveal>Where few<em>are invited.</em></h1>
+    <p data-reveal>An invitation-only circle for the daring 1%.</p>
+    <div class="ctas" data-reveal>
+      <a class="btn" href="#">Request an introduction</a>
+      <a class="textlink" href="#"><span>The club</span></a>
+    </div>
+  </div>
+</section>
+<script src="assets/gsap.min.js"></script>
+<script src="assets/hero.js"></script>
+<script>
+SilencioHero.reduce || SilencioHero.onMove.push((e) => document.querySelector('.sheen').style.setProperty('--hx', (30 + e.clientX / innerWidth * 60) + '%'));
+</script>
+</body>
+</html>

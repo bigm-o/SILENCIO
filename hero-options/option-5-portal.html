@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>SILÊNCIO · 5 · Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/hero.css">
+<style>
+/* 5 · Portal: a round window into the club, ripples of chrome around it, and the card's motto, PRÎMUS INTÊR PÂRES,
+   turning slowly around the rim like an engraving on a ring. The geode bust leans out of the window towards you. */
+.bg img{filter:brightness(.92)}
+.motto-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.motto-ring text{font:500 8.4px Manrope,sans-serif;letter-spacing:.42em;fill:#C9C9D0;text-transform:uppercase}
+.motto-ring g{transform-box:view-box;transform-origin:667px 279px;animation:turn 90s linear infinite}
+@keyframes turn{to{rotate:360deg}}
+.shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(11,11,13,.9) 0%,rgba(11,11,13,.5) 32%,transparent 50%)}
+.copy{position:absolute;z-index:10;left:var(--pad);top:50%;transform:translateY(-44%);max-width:560px}
+.copy h1{margin-top:26px;font:400 clamp(68px,6.6vw,118px)/.98 'EB Garamond',serif;letter-spacing:-.02em}
+.copy h1 em{font-style:italic;color:#D6D6DC}
+.copy p:not(.label){margin-top:28px;color:var(--muted);font-size:16px;max-width:40ch}
+.ctas{margin-top:44px}
+@media (prefers-reduced-motion:reduce){.motto-ring g{animation:none}}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<section class="hero" aria-label="SILÊNCIO">
+  <div class="layer bg" data-depth="8"><div class="frame">
+    <img src="assets/o5/bg.webp" alt="A round window in black space, ringed with chrome, looking into a warmly lit bar">
+    <svg class="motto-ring" viewBox="0 0 1000 558.1" aria-hidden="true">
+      <defs><path id="rim" d="M 667 279 m -171 0 a 171 171 0 1 1 342 0 a 171 171 0 1 1 -342 0"/></defs>
+      <g><text><textPath href="#rim" textLength="1068" lengthAdjust="spacing">Prîmus intêr pâres · Prîmus intêr pâres · Prîmus intêr pâres · Prîmus intêr pâres · Prîmus intêr pâres · Prîmus intêr pâres ·</textPath></text></g>
+    </svg>
+  </div></div>
+  <div class="layer fg" data-depth="-22"><div class="frame"><img src="assets/o5/fg.webp" alt="A black marble bust, its face opening into white crystal, leaning out of the window"></div></div>
+  <div class="shade" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="Main" data-reveal="1.4">
+    <a class="logo" href="#" aria-label="SILÊNCIO home"><img src="assets/emblem.webp" alt="" data-intro-logo-slot></a>
+    <div class="links"><a href="#">The Club</a><a href="#">Dining</a><a href="#">Lounge</a><a href="#">Gatherings</a></div>
+    <a class="btn outline pill cta" href="#">Request an introduction</a>
+  </nav>
+
+  <div class="copy">
+    <p class="label" data-reveal>Private membership club</p>
+    <h1 data-reveal>A circle,<br><em>kept small.</em></h1>
+    <p data-reveal>For leaders, founders and tastemakers who prefer to be known by few.</p>
+    <div class="ctas" data-reveal><a class="btn pill" href="#">Request an introduction</a></div>
+  </div>
+</section>
+<script src="assets/gsap.min.js"></script>
+<script src="assets/hero.js"></script>
+<script>
+if (!SilencioHero.reduce && window.gsap) {
+  // the window opens: the scene scales up from the circle's centre, the figure arrives a beat later
+  gsap.from('.bg .frame', { scale: 0.9, opacity: 0, transformOrigin: '66.7% 50%', duration: 3, ease: 'expo.out' });
+  gsap.from('.fg .frame', { y: 50, opacity: 0, duration: 2.6, ease: 'expo.out', delay: 0.5 });
+}
+</script>
+</body>
+</html>

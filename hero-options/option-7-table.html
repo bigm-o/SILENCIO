@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>SILÊNCIO · 7 · The Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/hero.css">
+<style>
+/* 7 · The Table: a private dining room, a door left ajar. The camera drifts in very slowly, as if you were being shown in;
+   the candles breathe. One centred line and a single quiet way in. */
+.bg img{filter:brightness(.8)}
+.candles{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(ellipse 22% 18% at 18% 66%,rgba(255,180,100,.22),transparent 70%),radial-gradient(ellipse 10% 26% at 70% 52%,rgba(255,190,120,.16),transparent 70%);
+  animation:flicker 5.3s ease-in-out infinite alternate}
+@keyframes flicker{0%{opacity:.7}35%{opacity:1}55%{opacity:.82}100%{opacity:.96}}
+.shade{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 60% at 50% 45%,transparent 30%,rgba(8,8,10,.75) 100%),linear-gradient(0deg,rgba(8,8,10,.92) 0%,rgba(8,8,10,.5) 30%,transparent 55%)}
+.nav{grid-template-columns:1fr auto 1fr}
+.nav .links{grid-column:1;justify-self:start}
+.nav .logo{grid-column:2;grid-row:1;justify-self:center;width:44px;height:44px}
+.nav .cta{grid-column:3}
+.copy{position:absolute;z-index:10;left:50%;bottom:9vh;translate:-50% 0;text-align:center;width:min(1000px,90vw)}
+.copy .wm{width:clamp(220px,19vw,320px);height:auto;margin:0 auto}
+.copy h1{margin-top:26px;font:400 clamp(60px,5.8vw,104px)/1.02 'Gilda Display',serif;letter-spacing:-.01em}
+.copy .textlink{margin-top:38px}
+@media (prefers-reduced-motion:reduce){.candles{animation:none}}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<section class="hero" aria-label="SILÊNCIO">
+  <div class="layer bg" data-depth="10"><div class="frame"><img src="assets/o7/bg.webp" alt="A private dining room, a long black stone table set by candlelight, a door ajar onto warm light"><i class="candles" aria-hidden="true"></i></div></div>
+  <div class="shade" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="Main" data-reveal="1.6">
+    <div class="links"><a href="#">The Club</a><a href="#">Dining</a><a href="#">Lounge</a><a href="#">Gatherings</a></div>
+    <a class="logo" href="#" aria-label="SILÊNCIO home"><img src="assets/emblem.webp" alt="" data-intro-logo-slot></a>
+    <a class="btn outline cta" href="#">Request an introduction</a>
+  </nav>
+
+  <div class="copy">
+    <img class="wm" src="assets/wordmark.webp" alt="SILÊNCIO" data-reveal="0.6">
+    <h1 data-reveal="1">Some tables<br>are never listed.</h1>
+    <a class="textlink" href="#" data-reveal="1.4"><span>Request an introduction</span></a>
+  </div>
+</section>
+<script src="assets/gsap.min.js"></script>
+<script src="assets/hero.js"></script>
+<script>
+if (!SilencioHero.reduce && window.gsap) gsap.fromTo('.bg .frame', { scale: 1.1 }, { scale: 1, duration: 22, ease: 'power2.out', transformOrigin: '58% 55%' });
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>SILÊNCIO · 6 · Lounge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/hero.css">
+<style>
+/* 6 · Lounge: the room itself, full bleed, and the real chrome emblem (the Blender spin) turning slowly in it.
+   The emblem tilts towards the cursor in true perspective and catches the warm light of the bar. */
+.bg img{filter:brightness(.62) saturate(.92) contrast(1.05)}
+.shade{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(11,11,13,.94) 0%,rgba(11,11,13,.72) 34%,rgba(11,11,13,.2) 60%,transparent 75%),linear-gradient(0deg,rgba(11,11,13,.8),transparent 35%),linear-gradient(180deg,rgba(11,11,13,.6),transparent 22%)}
+.relic{position:absolute;z-index:5;right:9vw;top:50%;width:min(44vh,560px);aspect-ratio:1;translate:0 -50%;perspective:900px}
+.relic .tilt{position:absolute;inset:0;transform-style:preserve-3d}
+.relic video,.relic img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.relic .halo{position:absolute;left:10%;right:10%;bottom:-14%;height:22%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,178,102,.45),rgba(255,140,60,.08) 70%,transparent);filter:blur(14px)}
+.copy{position:absolute;z-index:10;left:var(--pad);top:50%;transform:translateY(-44%);max-width:min(900px,55vw)}
+.copy h1{margin-top:26px;font:500 clamp(62px,6vw,108px)/1 'Playfair Display',serif;letter-spacing:-.02em}
+.copy p:not(.label){margin-top:26px;color:var(--muted);font-size:16px;max-width:40ch}
+.ctas{margin-top:44px;display:flex;align-items:center;gap:36px}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<section class="hero" aria-label="SILÊNCIO">
+  <div class="layer bg" data-depth="12"><div class="frame"><img src="assets/o6/bg.webp" alt="A private lounge at night, a long onyx bar glowing amber under pendant lights"></div></div>
+  <div class="shade" aria-hidden="true"></div>
+  <div class="relic" data-depth="-16" aria-hidden="true">
+    <i class="halo"></i>
+    <div class="tilt">
+      <img src="assets/emblem_frame.webp" alt="">
+      <video muted loop playsinline preload="auto" tabindex="-1"></video>
+    </div>
+  </div>
+
+  <nav class="nav" aria-label="Main" data-reveal="1.4">
+    <a class="logo" href="#" aria-label="SILÊNCIO home"><img src="assets/emblem.webp" alt="" data-intro-logo-slot></a>
+    <div class="links"><a href="#">The Club</a><a href="#">Dining</a><a href="#">Lounge</a><a href="#">Gatherings</a></div>
+    <a class="btn outline cta" href="#">Request an introduction</a>
+  </nav>
+
+  <div class="copy">
+    <p class="label" data-reveal>Private membership club · Lagos</p>
+    <h1 data-reveal>The night,<br>in confidence.</h1>
+    <p data-reveal>Japanese and Italian dining, a private lounge, and the people worth knowing.</p>
+    <div class="ctas" data-reveal><a class="btn" href="#">Request an introduction</a><a class="textlink" href="#"><span>The lounge</span></a></div>
+  </div>
+</section>
+<script src="assets/gsap.min.js"></script>
+<script src="assets/hero.js"></script>
+<script>
+(() => {
+  const v = document.querySelector('.relic video'), still = document.querySelector('.relic img');
+  // Safari (and every iOS browser) gets HEVC with alpha; everyone else VP9 with alpha. Never <source> order.
+  const ua = navigator.userAgent, ios = /iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const safari = ios || (/Safari\//.test(ua) && !/Chrom(e|ium)|CriOS|Edg|OPR|Firefox|FxiOS|Android/.test(ua));
+  if (SilencioHero.reduce) return;                       // reduced motion: the still emblem stays
+  v.src = 'assets/emblem_loop.' + (safari ? 'mov' : 'webm');
+  v.playbackRate = v.defaultPlaybackRate = 0.75;           // a slower, heavier turn
+  v.addEventListener('playing', () => { still.style.visibility = 'hidden'; }, { once: true });
+  v.play().catch(() => {});
+  if (!window.gsap) return;
+  gsap.from('.relic', { opacity: 0, scale: 0.92, duration: 2.6, ease: 'expo.out', delay: 0.4 });
+  gsap.to('.relic .tilt', { y: -12, duration: 6, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+  const rx = gsap.quickTo('.relic .tilt', 'rotationX', { duration: 2, ease: 'power3' }), ry = gsap.quickTo('.relic .tilt', 'rotationY', { duration: 2, ease: 'power3' });
+  SilencioHero.onMove.push((e, nx, ny) => { ry(nx * 18); rx(-ny * 12); });
+})();
+</script>
+</body>
+</html>

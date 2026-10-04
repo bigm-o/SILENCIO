@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>SILÊNCIO · Hero options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/hero.css">
+<style>
+body{background:var(--silencio-bg);min-height:100vh}
+header{padding:56px var(--pad) 36px;display:flex;align-items:end;justify-content:space-between;gap:40px}
+header h1{font:500 clamp(40px,4vw,64px)/1 'Cormorant Garamond',serif}
+header p{color:var(--muted);max-width:52ch}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:48px 40px;padding:0 var(--pad) 96px}
+.card{display:block}
+.card .shot{aspect-ratio:16/10;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.card img{width:100%;height:100%;object-fit:cover;transition:scale 1.4s var(--ease),filter 1.4s var(--ease);filter:brightness(.92)}
+.card:hover img{scale:1.03;filter:brightness(1)}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin-top:20px}
+.meta b{font:500 30px/1 'Cormorant Garamond',serif;color:var(--muted)}
+.meta h2{font:500 28px/1 'Cormorant Garamond',serif}
+.meta p{grid-column:2;color:var(--muted);font-size:14px;max-width:60ch}
+.group{grid-column:1/-1;margin-top:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Eight hero options</h1>
+  <p>Open each one at full screen and move the cursor: every option has depth and a motion of its own. Options 1 to 5 pair a Hellenistic figure with the bar; 6 to 8 use the interior as the full background.</p>
+</header>
+<main class="grid">
+  <p class="label group">The figure and the bar</p>
+  <a class="card" href="option-1-spill.html"><div class="shot"><img src="assets/thumbs/option-1-spill.webp" alt=""></div>
+    <div class="meta"><b>1</b><h2>Spill</h2><p>Warm light leaks from a hidden bar behind the chrome figure. The figure and the room part with the cursor; a highlight moves across the chrome.</p></div></a>
+  <a class="card" href="option-2-arch.html"><div class="shot"><img src="assets/thumbs/option-2-arch.webp" alt=""></div>
+    <div class="meta"><b>2</b><h2>Arch</h2><p>A doorway in black marble, the lounge glowing beyond, the geode bust standing guard. Draw near the door, or the invitation, and the light opens up.</p></div></a>
+  <a class="card" href="option-3-name.html"><div class="shot"><img src="assets/thumbs/option-3-name.webp" alt=""></div>
+    <div class="meta"><b>3</b><h2>The Name</h2><p>The blindfolded marble figure stands before SILÊNCIO in chrome, the two planes separating in real depth. A glass bar names what membership opens.</p></div></a>
+  <a class="card" href="option-4-halo.html"><div class="shot"><img src="assets/thumbs/option-4-halo.webp" alt=""></div>
+    <div class="meta"><b>4</b><h2>Halo</h2><p>One beam of light, dust drifting through it, and a floating chrome head crowned by a ring of gold: the membership ring as a halo.</p></div></a>
+  <a class="card" href="option-5-portal.html"><div class="shot"><img src="assets/thumbs/option-5-portal.webp" alt=""></div>
+    <div class="meta"><b>5</b><h2>Portal</h2><p>A round window into the club, chrome ripples around it, and the card's motto turning slowly on the rim. The geode bust leans out towards you.</p></div></a>
+  <p class="label group">The room as the hero</p>
+  <a class="card" href="option-6-lounge.html"><div class="shot"><img src="assets/thumbs/option-6-lounge.webp" alt=""></div>
+    <div class="meta"><b>6</b><h2>Lounge</h2><p>The lounge full bleed, and the real chrome emblem from Blender turning in it, tilting towards the cursor in true perspective.</p></div></a>
+  <a class="card" href="option-7-table.html"><div class="shot"><img src="assets/thumbs/option-7-table.webp" alt=""></div>
+    <div class="meta"><b>7</b><h2>The Table</h2><p>A private dining room, a door left ajar. The view drifts in slowly, as if you were being shown to your seat; candles breathe.</p></div></a>
+  <a class="card" href="option-8-afterhours.html"><div class="shot"><img src="assets/thumbs/option-8-afterhours.webp" alt=""></div>
+    <div class="meta"><b>8</b><h2>After Hours</h2><p>The lounge after midnight, held in near darkness. A pool of light follows your hand and shows the room in colour where it falls.</p></div></a>
+</main>
+</body>
+</html>

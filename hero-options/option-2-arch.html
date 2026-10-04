@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>SILÊNCIO · 2 · Arch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/hero.css">
+<style>
+/* 2 · Arch: the hidden door. A doorway in black marble glows with the lounge beyond; the geode bust stands guard.
+   Moving towards the door (or onto the invitation) lets the warm light spill further into the room. */
+.bg .frame{transition:scale 2.4s var(--ease);transform-origin:25% 62%}
+.door{position:absolute;left:12%;top:20%;width:30%;height:80%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(ellipse 50% 55% at 50% 60%,rgba(255,176,98,.5),rgba(255,140,60,.12) 55%,transparent 75%);opacity:.18;transition:opacity 1.8s var(--ease)}
+.hero.open .door{opacity:.85}
+.hero.open .bg .frame{scale:1.035}
+.shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(270deg,rgba(11,11,13,.82) 0%,rgba(11,11,13,.4) 34%,transparent 52%)}
+.copy{position:absolute;z-index:10;right:var(--pad);top:50%;transform:translateY(-40%);text-align:right;max-width:min(860px,52vw)}
+.copy h1{margin-top:26px;font:400 clamp(60px,5.8vw,104px)/1.02 Prata,serif;letter-spacing:-.01em;color:#E8E7EC}
+.copy p:not(.label){margin:26px 0 0 auto;color:var(--muted);font-size:16px;max-width:34ch}
+.ctas{margin-top:42px;display:flex;justify-content:flex-end}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<section class="hero" aria-label="SILÊNCIO">
+  <div class="layer bg" data-depth="9"><div class="frame"><img src="assets/o2/bg.webp" alt=""><i class="door" aria-hidden="true"></i></div></div>
+  <div class="layer fg" data-depth="-20"><div class="frame"><img src="assets/o2/fg.webp" alt="A black marble bust whose face opens into white crystal"></div></div>
+  <div class="shade" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="Main" data-reveal="1.4">
+    <a class="logo" href="#" aria-label="SILÊNCIO home"><img src="assets/emblem.webp" alt="" data-intro-logo-slot></a>
+    <div class="links"><a href="#">The Club</a><a href="#">Dining</a><a href="#">Lounge</a><a href="#">Gatherings</a></div>
+    <a class="btn outline pill cta" href="#">Request an introduction</a>
+  </nav>
+
+  <div class="copy">
+    <p class="label" data-reveal>By invitation</p>
+    <h1 data-reveal>Behind every<br>quiet door.</h1>
+    <p data-reveal>Dining, lounge and private gatherings, for members and their guests.</p>
+    <div class="ctas" data-reveal><a class="btn pill main" href="#">Request an introduction</a></div>
+  </div>
+</section>
+<script src="assets/gsap.min.js"></script>
+<script src="assets/hero.js"></script>
+<script>
+(() => {
+  const hero = document.querySelector('.hero');
+  const open = on => hero.classList.toggle('open', on);
+  // the door answers the invitation, and the cursor drawing near it
+  document.querySelectorAll('.btn.main').forEach(b => { b.addEventListener('pointerenter', () => open(true)); b.addEventListener('pointerleave', () => open(false)); });
+  SilencioHero.onMove.push(e => { if (!e.target.closest('.btn')) open(e.clientX < innerWidth * 0.42); });
+  if (!SilencioHero.reduce && window.gsap) gsap.from('.bg .frame', { scale: 1.08, duration: 4, ease: 'expo.out' });
+})();
+</script>
+</body>
+</html>

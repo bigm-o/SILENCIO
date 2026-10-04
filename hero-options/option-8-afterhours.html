@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>SILÊNCIO · 8 · After Hours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/hero.css">
+<style>
+/* 8 · After Hours: the lounge after midnight, held almost in darkness. A soft pool of light follows your hand and shows
+   the room in colour where it falls; haze drifts through. You only see what you go looking for. */
+.dim img{filter:grayscale(.75) brightness(.38) contrast(1.1)}
+.lit{-webkit-mask-image:radial-gradient(circle var(--r,24vw) at var(--mx,62%) var(--my,46%),#000 0%,rgba(0,0,0,.55) 45%,transparent 100%);
+          mask-image:radial-gradient(circle var(--r,24vw) at var(--mx,62%) var(--my,46%),#000 0%,rgba(0,0,0,.55) 45%,transparent 100%)}
+.lit img{filter:brightness(.95) saturate(1.08)}
+.haze{position:absolute;inset:-20%;pointer-events:none;mix-blend-mode:screen;opacity:.55;
+  background:radial-gradient(ellipse 30% 22% at 30% 40%,rgba(255,120,90,.10),transparent 70%),radial-gradient(ellipse 36% 26% at 70% 30%,rgba(255,170,120,.08),transparent 70%),radial-gradient(ellipse 40% 30% at 50% 70%,rgba(220,90,70,.07),transparent 70%);
+  animation:drift 38s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(6%,-4%,0) scale(1.08)}}
+.shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,rgba(8,8,10,.9) 0%,rgba(8,8,10,.35) 38%,transparent 60%)}
+.nav .logo{width:52px;height:52px}
+.copy{position:absolute;z-index:10;left:var(--pad);bottom:150px;max-width:min(1000px,62vw)}
+.copy .label{color:#E0A58F}
+.copy h1{margin-top:22px;font:400 clamp(58px,5.6vw,100px)/1.02 'DM Serif Display',serif;letter-spacing:-.01em}
+.copy h1 em{color:#E6D3C4}
+.copy .btn{margin-top:38px}
+.bar{position:absolute;z-index:10;left:0;right:0;bottom:0;height:96px;display:grid;grid-template-columns:repeat(3,1fr) auto;align-items:center;padding:0 var(--pad);gap:0}
+.bar a{display:flex;flex-direction:column;gap:6px;padding:0 28px;height:100%;justify-content:center;transition:background .8s var(--ease)}
+.bar a:first-child{padding-left:0}
+.bar a+a{box-shadow:inset 1px 0 0 rgba(255,255,255,.07)}
+.bar a:hover{background:rgba(255,255,255,.025)}
+.bar .label{color:var(--ink)}
+.bar small{font:400 13px/1.3 Manrope,sans-serif;color:var(--muted)}
+.bar .hours{padding-right:0;text-align:right}
+@media (prefers-reduced-motion:reduce){.haze{animation:none}}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<section class="hero" aria-label="SILÊNCIO">
+  <div class="layer bg dim" data-depth="8"><div class="frame"><img src="assets/o8/bg.webp" alt="The club's lounge after midnight: velvet booths, a chrome bar, guests seen from behind, red light through haze"></div></div>
+  <div class="layer bg lit" data-depth="8" aria-hidden="true"><div class="frame"><img src="assets/o8/bg.webp" alt=""></div></div>
+  <div class="haze" aria-hidden="true"></div>
+  <div class="shade" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="Main" data-reveal="1.4">
+    <a class="logo" href="#" aria-label="SILÊNCIO home"><img src="assets/emblem.webp" alt="" data-intro-logo-slot></a>
+    <div class="links"><a href="#">The Club</a><a href="#">Dining</a><a href="#">Lounge</a><a href="#">Gatherings</a></div>
+    <a class="btn outline pill cta" href="#">Request an introduction</a>
+  </nav>
+
+  <div class="copy">
+    <p class="label" data-reveal>After hours</p>
+    <h1 data-reveal>What happens here<br><em>stays unspoken.</em></h1>
+    <a class="btn pill" href="#" data-reveal>Request an introduction</a>
+  </div>
+
+  <div class="bar glass" data-reveal="1.8">
+    <a href="#"><span class="label">Lounge</span><small>Music, low light, no audience</small></a>
+    <a href="#"><span class="label">Dining</span><small>Japanese and Italian, for members</small></a>
+    <a href="#"><span class="label">Gatherings</span><small>Private evenings, by invitation</small></a>
+    <a class="hours" href="#"><span class="label">Visit</span><small>Lagos, for members and guests</small></a>
+  </div>
+</section>
+<script src="assets/gsap.min.js"></script>
+<script src="assets/hero.js"></script>
+<script>
+(() => {
+  const lit = document.querySelector('.lit');
+  if (SilencioHero.reduce || !window.gsap) return;
+  const pos = { x: 62, y: 46, r: 0 };
+  const apply = () => { lit.style.setProperty('--mx', pos.x + '%'); lit.style.setProperty('--my', pos.y + '%'); lit.style.setProperty('--r', pos.r + 'vw'); };
+  // the light opens on the room, then wanders slowly until the visitor takes it
+  gsap.to(pos, { r: 24, duration: 3, ease: 'expo.out', delay: 0.4, onUpdate: apply });
+  const wander = gsap.to(pos, { x: 40, y: 52, duration: 9, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 2, onUpdate: apply });
+  const qx = gsap.quickTo(pos, 'x', { duration: 1.6, ease: 'power3', onUpdate: apply }), qy = gsap.quickTo(pos, 'y', { duration: 1.6, ease: 'power3', onUpdate: apply });
+  SilencioHero.onMove.push(e => { wander.kill(); qx(e.clientX / innerWidth * 100); qy(e.clientY / innerHeight * 100); });
+})();
+</script>
+</body>
+</html>
