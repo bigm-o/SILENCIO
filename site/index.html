@@ -797,6 +797,19 @@ addEventListener('DOMContentLoaded', () => {
 <script>
 /* One style writer for every scroll script: it writes a property only when its value actually changes, so a frame
    only touches what moved (fewer style recalcs), and every script sees the same cached truth. */
+/* Where an element sits at rest inside the pinned stage: layout offsets plus each ancestor's CSS `transform`, but never
+   the animated `translate` / `scale` properties. So a measurement taken at any moment (mid-animation, mid-lift, during
+   a URL-bar resize) always returns the same resting place. */
+window.SilencioRest = el => {
+  const pin = document.querySelector('.scene-pin'); let x = 0, y = 0, e = el;
+  while (e && e !== pin) {
+    x += e.offsetLeft; y += e.offsetTop;
+    const t = getComputedStyle(e).transform;
+    if (t && t !== 'none') { const mtx = new DOMMatrix(t); x += mtx.m41; y += mtx.m42; }
+    e = e.offsetParent;
+  }
+  return { left: x, top: y, width: el.offsetWidth, height: el.offsetHeight, right: x + el.offsetWidth, bottom: y + el.offsetHeight };
+};
 window.SilencioStyle = (() => {
   let cache = new WeakMap();
   const w = (el, prop, val) => {
@@ -866,11 +879,8 @@ window.SilencioAct2 = (() => {
 
   function recompute() {
     portrait = matchMedia('(max-aspect-ratio: 1/1)').matches;
-    const a = card.arch, keepT = a.style.translate, keepS = a.style.scale;   // measure the card at rest, then restore
-    a.style.translate = ''; a.style.scale = '';
-    const r = a.getBoundingClientRect(), vw = innerWidth, vh = Q('.scene-pin').clientHeight;
-    const pr = card.pane.getBoundingClientRect();
-    a.style.translate = keepT; a.style.scale = keepS;
+    const r = window.SilencioRest(card.arch), pr = window.SilencioRest(card.pane);   // resting layout, whatever is moving now
+    const vw = innerWidth, vh = Q('.scene-pin').clientHeight;
     bw = card.pane.clientWidth; bh = card.pane.clientHeight;
     const aspect = bw / bh, Rc = portrait ? CARD_ARCH : CARD_WIDE;
     const cy = vh * CENTRE_Y;
@@ -948,13 +958,16 @@ window.SilencioAct2 = (() => {
     xNow = x;
     // direction follows the scroll, with a little hysteresis so a twitch doesn't flip the clip
     const dx = lastX < -1e8 ? 0 : x - lastX; lastX = x;
-    if (x > 0 && x < Bt.turn + Bt.cross) {
+    // the clip starts as soon as the lounge frame has risen into place (K.TRIG, before the lounge words finish),
+    // while the frame still sits beside the words; the frame's glide to the centre stays on its own scroll cue
+    const T0 = K.TRIG;
+    if (x > T0 && x < Bt.turn + Bt.cross) {
       acc = Math.sign(dx) === Math.sign(acc) ? acc + dx : dx;
       if (P.dir <= 0 && acc > 1.2) setDir(1);
       if (P.dir >= 0 && acc < -1.2) setDir(-1);
-    } else if (x <= 0) setDir(-1);
+    } else if (x <= T0) setDir(-1);
     const L = window.SilencioLenis;
-    if (L) { const slow = x > -10 && x < Bt.turn * 0.85; L.options.wheelMultiplier = slow ? 0.45 : 0.9; }
+    if (L) { const slow = x > T0 - 6 && x < Bt.turn * 0.85; L.options.wheelMultiplier = slow ? 0.45 : 0.9; }
     const mv = io3(seg(x, 0, Bt.turn * 0.4)), on = x > 0;
     // the frame grows 20% and glides to the centre; the old words leave; the reflection (of the old picture) fades
     if (on) w(card.arch, 'translate', `${(G.dx * mv).toFixed(2)}px ${(G.dy * mv).toFixed(2)}px`);
@@ -963,7 +976,7 @@ window.SilencioAct2 = (() => {
     w(card.copy, 'translate', on ? `${(-exit * 80).toFixed(1)}px 0` : ''); w(card.copy, 'opacity', on ? (1 - exit).toFixed(3) : '');
     w(card.shade, 'opacity', on ? (1 - exit * 0.6).toFixed(3) : '');
     w(card.reflect, 'opacity', on ? (0.3 * (1 - mv)).toFixed(3) : '');
-    w(inner, 'opacity', on || P.pos > 0.02 ? 1 : 0);
+    w(inner, 'opacity', x > K.TRIG || P.pos > 0.02 ? 1 : 0);
     w(heroFade, 'opacity', on ? mv.toFixed(3) : 0);     // the floor's glow fades at the bottom (an overlay: no per-frame mask repaint)
     // the new words: label, line, small line, each rising and writing in; the last finishes after the release
     const w0 = Bt.turn * 0.35, span = Bt.turn * 0.38, step = Bt.turn * 0.17;
@@ -1012,8 +1025,7 @@ window.SilencioVision = (() => {
 
   function recompute() {
     vw = innerWidth; vh = Q('.scene-pin').clientHeight; portrait = matchMedia('(max-aspect-ratio: 1/1)').matches;
-    const L = ctx.logo, keep = L.style.translate; L.style.translate = '';
-    const r = L.getBoundingClientRect(); L.style.translate = keep;
+    const r = window.SilencioRest(ctx.logo);
     logoRest = { l: r.left, t: r.top, w: r.width };
     vlogo.style.width = vlogo.style.height = r.width + 'px'; vlogo.style.left = r.left + 'px'; vlogo.style.top = r.top + 'px';
     toLeft = parseFloat(getComputedStyle(ctx.nav).paddingLeft) - ctx.logo.offsetLeft;
@@ -1199,7 +1211,7 @@ window.SilencioVision = (() => {
     st.inspectK = damp(st.inspectK, ins ? 1 : 0, 6, dt);
     // slow while a face is towards you, quick through the edge: angular speed rises with sin^4(yaw)
     // (0.22 rad/s face-on, 2.2 rad/s edge-on: a few seconds on each face, under a second through the edge)
-    if (!ins) { const e = Math.sin(st.yawT) ** 2; st.yawT += dt * (0.22 + (2.2 - 0.22) * e * e); }
+    if (!ins) { const e = Math.sin(st.yawT) ** 2; st.yawT += dt * (0.275 + (2.2 - 0.275) * e * e); }
     st.lift = damp(st.lift, st.hover && !ins ? 1 : 0, 7, dt);
     const tgt = ins ? st.insp : st.rest;
     st.pos.x = damp(st.pos.x, tgt.x, 5, dt); st.pos.y = damp(st.pos.y, tgt.y, 5, dt); st.pos.s = damp(st.pos.s, tgt.s, 5, dt);
@@ -1261,7 +1273,8 @@ addEventListener('DOMContentLoaded', () => {
   const A2_LEN = Object.values(BEATS).reduce((a, b) => a + b, 0);
   scene.style.height = (100 + A2_AT + A2_LEN) + 'svh';
   const act2 = window.SilencioAct2;
-  if (act2) act2.init({ BEATS, clamp, seg, io3, out3, cards: { arch, pane: Q('.arch .pane'), reflect: Q('.arch-reflect'), copy: Q('.bar-copy'), shade, logo, hero } });
+  if (act2) act2.init({ BEATS, TRIG: 0.40 * ACT1 - A2_AT, clamp, seg, io3, out3, cards:   // TRIG: the lounge frame has landed (act 1's 0.365) and settled
+                        { arch, pane: Q('.arch .pane'), reflect: Q('.arch-reflect'), copy: Q('.bar-copy'), shade, logo, hero } });
   const vision = window.SilencioVision;
   if (vision) vision.init({ BEATS, clamp, seg, io3, out3, ctx: { logo, nav, lift: [hero, Q('.bar-section'), Q('.act2')] } });
 
@@ -1279,15 +1292,13 @@ addEventListener('DOMContentLoaded', () => {
     const r = worldImg.getBoundingClientRect(), hb = hero.getBoundingClientRect();
     m.maxPan = Math.max(0, r.bottom + pan - hb.bottom - 2);
     m.dirty = true;                                    // after a resize, re-run the act-1 cues once
-    const lifted = [hero, Q('.bar-section'), Q('.act2')], keep = lifted.map(el => el.style.translate);
-    lifted.forEach(el => { el.style.translate = ''; });
     if (act2) act2.recompute(m.toLeft);
     if (vision) vision.recompute();
-    lifted.forEach((el, i) => { el.style.translate = keep[i]; });
   }
   recompute();
   if (!worldImg.complete) worldImg.addEventListener('load', recompute, { once: true });
   addEventListener('load', recompute);
+  if (document.fonts) document.fonts.ready.then(recompute);
   let resizeQueued = false;
   let lastW = innerWidth, lastPinH = pin.clientHeight;
   addEventListener('resize', () => {
@@ -1309,6 +1320,8 @@ addEventListener('DOMContentLoaded', () => {
     if (act2 && !preloaded && p > 0.05) { preloaded = true; act2.preload(); if (vision) vision.preload(); }
     if (p === last && !m.dirty) return;
     const first = last < 0; last = p; m.dirty = false;
+    // the hero's entrance tweens would otherwise keep writing opacity over the scroll cues if someone scrolls during them
+    if (p > 0 && !m.revealDone) { m.revealDone = true; gsap.getTweensOf('.hero [data-reveal], .hero .bg .frame, .hero .fg .frame').forEach(t => t.progress(1).kill()); w.reset(); }
     if (first && p === 0) return;                     // at rest: leave the hero exactly as revealed
     const vh = m.pinVh;
 
