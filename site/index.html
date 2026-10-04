@@ -323,19 +323,12 @@ html.js-motion .hero .bar.glass::before{will-change:opacity}
 /* ══ Act 2: into the bar ══ */
 .act2{position:relative;height:100svh;min-height:360px;overflow:hidden;background:#0B0A0D}
 .a2-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.a2-view,.a2-logo{display:none}
-html.js-motion .act2{position:absolute;inset:0;z-index:6;pointer-events:none;visibility:hidden;background:none;min-height:0}
-html.js-motion .a2-still{display:none}
-html.js-motion .a2-view{display:block;position:absolute;inset:0;overflow:hidden;background:#0B0A0D;will-change:clip-path}
-.a2-layer{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:fill;transform-origin:0 0;will-change:transform;display:block}
-.a2-turn,.a2-stack,.a2-gl,.a2-comp{opacity:0}
-.a2-stack{position:absolute;inset:0}
-/* the zoom stills are exactly nested (child pasted into parent), so the sharper child can always lie on top with a
-   feathered edge: inside it shows the same picture as the parent, just with more detail */
-.a2-f2,.a2-f3{-webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent),linear-gradient(180deg,transparent,#000 5%,#000 95%,transparent);
-  -webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent),linear-gradient(180deg,transparent,#000 5%,#000 95%,transparent);mask-composite:intersect}
+html.js-motion .act2{display:none}
+.a2-in{display:none}
+html.js-motion .a2-in{display:block;position:absolute;inset:0;opacity:0;background:#140F0C}
+.arch .a2-layer{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:fill;transform-origin:0 0;will-change:transform;display:block}
+.a2-turn,.a2-f1,.a2-gl{opacity:0}
 .a2-gl{position:absolute;inset:0;width:100%;height:100%}
-html.js-motion .a2-logo{display:block;position:absolute;left:0;top:0;width:55px;height:55px}
 </style>
 </head>
 <body>
@@ -427,7 +420,12 @@ html.js-motion .a2-logo{display:block;position:absolute;left:0;top:0;width:55px;
   <div class="floor" aria-hidden="true"><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/hero-world-portrait.webp"><img src="assets/img/hero-world.webp" alt="" loading="lazy" decoding="async"></picture></div>
   <i class="bar-shade" aria-hidden="true"></i>
   <div class="arch-wrap">
-    <figure class="arch"><div class="pane"><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/bar-arch.webp"><img src="assets/img/bar-wide.webp" alt="The lounge at SILÊNCIO: bottles lit beneath three gold arches, crystal chandeliers, velvet seating" loading="lazy" decoding="async"></picture></div></figure>
+    <figure class="arch"><div class="pane"><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/bar-arch.webp"><img src="assets/img/bar-wide.webp" alt="The lounge at SILÊNCIO: bottles lit beneath three gold arches, crystal chandeliers, velvet seating" loading="lazy" decoding="async"></picture>
+      <div class="a2-in" aria-hidden="true">
+        <img class="a2-layer a2-f0" alt="" decoding="async"><img class="a2-layer a2-f1" alt="" decoding="async">
+        <video class="a2-layer a2-turn" muted playsinline preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
+        <canvas class="a2-gl"></canvas>
+      </div></div></figure>
     <div class="arch-reflect" aria-hidden="true"><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/bar-arch.webp"><img src="assets/img/bar-wide.webp" alt="" loading="lazy" decoding="async"></picture></div>
   </div>
   <div class="bar-copy">
@@ -440,16 +438,6 @@ html.js-motion .a2-logo{display:block;position:absolute;left:0;top:0;width:55px;
      counter, where the SILÊNCIO bottle and glass stand as live 3D. Without motion it is one still. ══ -->
 <section class="act2" aria-label="The bar">
   <img class="a2-still" src="assets/img/act2/bar-final-composite.webp" alt="The SILÊNCIO bottle and a crystal snifter on the bar, gold light behind" loading="lazy" decoding="async">
-  <div class="a2-view" aria-hidden="true">
-    <img class="a2-layer a2-f0" alt="" decoding="async">
-    <video class="a2-layer a2-turn" muted playsinline preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
-    <div class="a2-stack">
-      <img class="a2-layer a2-f1" alt="" decoding="async"><img class="a2-layer a2-f2" alt="" decoding="async"><img class="a2-layer a2-f3" alt="" decoding="async">
-      <img class="a2-layer a2-comp" alt="" decoding="async">
-    </div>
-    <canvas class="a2-gl"></canvas>
-  </div>
-  <img class="a2-logo" src="assets/img/emblem.webp" alt="" aria-hidden="true">
 </section>
 </div>
 </div>
@@ -726,74 +714,60 @@ addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <script>
-/* ══ Act 2: into the bar ══
-   Every layer is placed with one rule: a layer showing image-rect R, under a view V (both normalised to the 5504x3072
-   masters), gets  translate((R.l-V.l)/V.w*vw, (R.t-V.t)/V.h*vh) scale(R.w/V.w, R.h/V.h)  — transforms only, no layout.
-   The three.js camera uses the same V through setViewOffset, so the 3D props stay locked to the photograph.
-     expand  the card (its exact crop of F0) grows to full screen; the words slide away
-     turn    the Seedance clip (F0 -> F1) is scrubbed by scroll; first/last frames equal the stills exactly
-     zoom    F1 -> F2 -> F3, nested stills, lens-zoom (log scale); the props fade in and stay locked
-     pour    the bottle lifts, tips and pours into the glass; the liquid rises; the bottle returns
+/* ══ Act 2: into the bar, inside the frame ══
+   The lounge card keeps its frame. Scroll grows it 20% and glides it to the centre of the screen while the words leave,
+   and the turn clip plays inside it at the same time; it lands on the bar seen straight on (the clip's last frame).
+   Then the bottle and glass are pushed into the frame and the bottle pours.
+   Inside the card every layer is placed with one rule: a layer showing image-rect R under a view V (both normalised to
+   the 5504x3072 masters) gets  translate((R.l-V.l)/V.w*bw, (R.t-V.t)/V.h*bh) scale(R.w/V.w, R.h/V.h)  in the card's pane.
+   The three.js camera uses the same V through setViewOffset, so the props stay locked to the photograph.
+     turn    card to centre (first 40%), clip scrubbed (all of it), view eases from the card's crop to the clip's framing
+     props   bottle and glass slide in from the sides
+     pour    the bottle lifts, tips and pours; the liquid rises; the bottle returns
      rest    hold                                                                                                    */
 window.SilencioAct2 = (() => {
   const IW = 5504, IH = 3072;
-  const R0 = { l: 0.0136, t: 0.0101, w: 0.9857 - 0.0136, h: 0.9898 - 0.0101 };              // the video's framing of F0/F1
-  const RECT = { f1: { l: 0, t: 0, w: 1, h: 1 }, f2: { l: 0.2086, t: 0.2888, w: 0.5556, h: 0.5556 }, f3: { l: 0.3302, t: 0.4638, w: 0.3125, h: 0.3125 } };
+  const R0 = { l: 0.0136, t: 0.0101, w: 0.9857 - 0.0136, h: 0.9898 - 0.0101 };              // the clip's framing of F0/F1
+  const FULL = { l: 0, t: 0, w: 1, h: 1 };
   const CARD_WIDE = { l: 385 / IW, t: 92 / IH, w: 4238 / IW, h: 2616 / IH };                 // bar-wide.webp's crop of F0
   const CARD_ARCH = { l: 668 / IW, t: 0, w: 1966 / IW, h: 1 };                                // bar-arch.webp's crop of F0
-  const PROPS = { cx: 0.4845, cy: 0.60, w: 0.17 };                                            // where bottle + glass sit in F1
   const Q = s => document.querySelector(s);
-  const root = Q('.act2'), view = Q('.a2-view'), f0 = Q('.a2-f0'), vid = Q('.a2-turn'), stack = Q('.a2-stack');
-  const f1 = Q('.a2-f1'), f2 = Q('.a2-f2'), f3 = Q('.a2-f3'), comp = Q('.a2-comp'), canvas = Q('.a2-gl'), clone = Q('.a2-logo');
-  let K, B, card = {}, vw = 1, vh = 1, portrait = false, logoAt = null, archTy = 0;
-  let vidReady = false, scrubAt = 0, glState = null, lastX = null, sweepT = 0, cursorX = 0;
+  const inner = Q('.a2-in'), f0 = Q('.a2-f0'), vid = Q('.a2-turn'), f1 = Q('.a2-f1'), canvas = Q('.a2-gl');
+  let K, card = {}, G = null, bw = 1, bh = 1, portrait = false;
+  let vidReady = false, scrubAt = 0, glState = null, cursorX = 0;
 
   const lerp = (a, b, t) => a + (b - a) * t;
-  function cover(R) {                                       // the view showing R like object-fit: cover on this viewport
-    const ar = (R.w * IW) / (R.h * IH), vp = vw / vh; let w, h;
-    if (vp > ar) { w = R.w; h = w * IW / vp / IH; } else { h = R.h; w = h * IH * vp / IW; }
+  function cover(R, aspect) {                             // the view showing R like object-fit: cover in a box of this aspect
+    const ar = (R.w * IW) / (R.h * IH); let w, h;
+    if (aspect > ar) { w = R.w; h = w * IW / aspect / IH; } else { h = R.h; w = h * IH * aspect / IW; }
     return { l: R.l + (R.w - w) / 2, t: R.t + (R.h - h) / 2, w, h };
   }
-  function mixView(A, Z, k) {                               // log-scale size, linear centre
+  function mixView(A, Z, k) {                             // log-scale size, linear centre
     const w = Math.exp(lerp(Math.log(A.w), Math.log(Z.w), k)), h = w * A.h / A.w;
     const cx = lerp(A.l + A.w / 2, Z.l + Z.w / 2, k), cy = lerp(A.t + A.h / 2, Z.t + Z.h / 2, k);
     return { l: cx - w / 2, t: cy - h / 2, w, h };
   }
   function place(el, R, V) {
-    el.style.transform = `translate(${(R.l - V.l) / V.w * vw}px,${(R.t - V.t) / V.h * vh}px) scale(${R.w / V.w},${R.h / V.h})`;
-  }
-  function endView() {                                      // the near view: the F3 frame, but never so tight the props are cut
-    let V = cover(RECT.f3);
-    if (V.w < PROPS.w) {
-      const w = PROPS.w, h = Math.min(1, w * IW / (vw / vh) / IH), ww = h * IH * (vw / vh) / IW;
-      V = { w: ww, h, l: Math.min(1 - ww, Math.max(0, PROPS.cx - ww / 2)), t: Math.min(1 - h, Math.max(0, PROPS.cy - h / 2)) };
-    }
-    return V;
+    el.style.transform = `translate(${(R.l - V.l) / V.w * bw}px,${(R.t - V.t) / V.h * bh}px) scale(${R.w / V.w},${R.h / V.h})`;
   }
 
-  function recompute(logoToLeft) {
-    vw = innerWidth; vh = Q('.scene-pin').clientHeight; portrait = matchMedia('(max-aspect-ratio: 1/1)').matches;
-    // the card's pane on screen at rest (its rise translate removed) and the part of F0 it shows (object-fit: cover)
-    const r = card.pane.getBoundingClientRect(), Rc = portrait ? CARD_ARCH : CARD_WIDE;
-    const box = { l: r.left, t: r.top - archTy, w: r.width, h: r.height };
-    const pa = box.w / box.h, ra = (Rc.w * IW) / (Rc.h * IH); let vis = { ...Rc };
-    if (pa > ra) { vis.h = Rc.w * IW / pa / IH; vis.t = Rc.t + (Rc.h - vis.h) / 2; } else { vis.w = Rc.h * IH * pa / IW; vis.l = Rc.l + (Rc.w - vis.w) / 2; }
-    const Vw = vis.w * vw / box.w, Vh = vis.h * vh / box.h;
-    B = { box, radius: portrait ? [box.w / 2, box.w / 2, 0, 0] : [11, 11, 11, 11],
-          Vcard: { l: vis.l - box.l / vw * Vw, t: vis.t - box.t / vh * Vh, w: Vw, h: Vh }, Vfull: cover(R0), Vend: endView() };
-    const lr = card.logo.getBoundingClientRect(), tx = parseFloat(card.logo.style.translate) || 0;
-    logoAt = { l: lr.left - tx + logoToLeft, t: lr.top, w: lr.width };
-    clone.style.width = clone.style.height = logoAt.w + 'px'; clone.style.transform = `translate(${logoAt.l}px,${logoAt.t}px)`;
+  function recompute() {
+    portrait = matchMedia('(max-aspect-ratio: 1/1)').matches;
+    // measure the card at rest: clear Act 2's own transform for the read, then put it back
+    const a = card.arch, keepT = a.style.translate, keepS = a.style.scale;
+    a.style.translate = ''; a.style.scale = '';
+    const r = a.getBoundingClientRect(), vw = innerWidth, vh = Q('.scene-pin').clientHeight;
+    a.style.translate = keepT; a.style.scale = keepS;
+    bw = card.pane.clientWidth; bh = card.pane.clientHeight;
+    const aspect = bw / bh, Rc = portrait ? CARD_ARCH : CARD_WIDE;
+    G = { dx: vw / 2 - (r.left + r.width / 2), dy: vh / 2 - (r.top + r.height / 2), Vcard: cover(Rc, aspect), Vend: cover(R0, aspect) };
     if (glState) glState.resize();
-    lastX = null;
   }
 
   function preload() {
-    const big = vw * Math.min(devicePixelRatio || 1, 2) > 2200 ? 3840 : 2048;
-    f0.src = `assets/img/act2/bar-f0-${big}.webp`;
-    f1.src = `assets/img/act2/bar-f1-${big}.webp`; f2.src = `assets/img/act2/bar-f2-${big}.webp`; f3.src = `assets/img/act2/bar-f3-${big}.webp`;
-    comp.src = 'assets/img/act2/bar-final-composite.webp';
-    vid.src = `assets/video/bar-turn-${vw * Math.min(devicePixelRatio || 1, 2) > 1500 ? 1920 : 1280}.mp4`;
+    const big = bw * 1.2 * Math.min(devicePixelRatio || 1, 2) > 1900 ? 3840 : 2048;
+    f0.src = `assets/img/act2/bar-f0-${big}.webp`; f1.src = `assets/img/act2/bar-f1-${big}.webp`;
+    vid.src = `assets/video/bar-turn-${bw * 1.2 * Math.min(devicePixelRatio || 1, 2) > 1400 ? 1920 : 1280}.mp4`;
     vid.preload = 'auto'; vid.load();
     vid.addEventListener('loadeddata', () => {
       // some browsers (iOS Safari) only paint seeked frames after the video has played once: play, then pause at 0
@@ -807,47 +781,48 @@ window.SilencioAct2 = (() => {
   function initGL() {
     if (glState !== null) return; glState = false;
     const test = document.createElement('canvas');
-    if (!(test.getContext('webgl2') || test.getContext('webgl'))) return;                    // no WebGL: the composite still is used
+    if (!(test.getContext('webgl2') || test.getContext('webgl'))) return;                    // no WebGL: no props (the frame still lands)
     Promise.all([import('./assets/vendor/three/three-bar.min.js'), fetch('assets/3d/props.json').then(r => r.json()),
                  fetch('assets/3d/bar_camera.json').then(r => r.json())]).then(([T, P, C]) => {
       const renderer = new T.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, portrait ? 1.5 : 2));
       renderer.outputColorSpace = T.SRGBColorSpace;
       const scene = new T.Scene();
       const cam = new T.PerspectiveCamera(C.fov_v_deg, IW / IH, 0.05, 40);
       cam.position.fromArray(C.position_m); cam.up.fromArray(C.up);
       cam.lookAt(new T.Vector3().fromArray(C.position_m).add(new T.Vector3().fromArray(C.forward)));
+      const st = { T, renderer, scene, cam, P, dirty: true, bottle: null, glass: null, liquid: null, stream: null, level: -1, shadows: [] };
       const pm = new T.PMREMGenerator(renderer);
       new T.TextureLoader().load('assets/3d/env.png', tex => {
         tex.mapping = T.EquirectangularReflectionMapping; tex.colorSpace = T.SRGBColorSpace;
         scene.environment = pm.fromEquirectangular(tex).texture; tex.dispose(); st.dirty = true;
       });
-      scene.environmentRotation.y = Math.PI;               // see make_bar_env.py: Blender and three map equirects 180 deg apart
+      scene.environmentRotation.y = Math.PI;               // Blender and three map equirects 180 deg apart (make_bar_env.py)
       const draco = new T.DRACOLoader(); draco.setDecoderPath('assets/vendor/three/draco/');
       const loader = new T.GLTFLoader(); loader.setDRACOLoader(draco);
-      const st = { T, renderer, scene, cam, P, dirty: true, bottle: null, glass: null, liquid: null, stream: null, level: -1, shadows: [] };
       loader.load('assets/3d/silencio-bar.glb', g => {
         scene.add(g.scene);
         st.bottle = g.scene.getObjectByName('Bottle'); st.glass = g.scene.getObjectByName('Glass');
-        st.bottle.rotation.order = 'ZYX';                       // yaw first, then the pour tilt in the world's frame
-        st.bottle.rotation.y = 0.30;                            // three-quarter, as in the reference: its left side catches the light
+        st.bottle.rotation.order = 'ZYX';                  // yaw first, then the pour tilt in the world's frame
+        st.bottle.rotation.y = 0.30;                       // three-quarter, as in the reference
         st.bottleHome = { p: st.bottle.position.clone(), r: st.bottle.rotation.z };
+        st.glassHome = st.glass.position.clone();
         g.scene.traverse(o => {
           if (!o.isMesh) return;
           const n = o.material.name || '';
-          if (n.startsWith('Gold')) { o.material.envMapIntensity = 2.1; }
-          // crystal over a photograph: a black body that only ADDS its reflections and never adds alpha, so on the
-          // transparent canvas the bar shows straight through and the highlights brighten it
-          if (n === 'Crystal') o.material = new T.MeshPhysicalMaterial({ color: 0x000000, roughness: 0.015, metalness: 0, clearcoat: 1,
-            clearcoatRoughness: 0.01, envMapIntensity: 3.2, transparent: true, depthWrite: false, side: T.DoubleSide,
-            premultipliedAlpha: true });                // premultiplied blend + alpha 0 below = the colour is simply added
-          if (n === 'Crystal') o.material.onBeforeCompile = sh => {            // and its fragments carry no alpha at all
-            sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>', '#include <dithering_fragment>\n  gl_FragColor.a = 0.0;'); };
-          if (n === 'Frost') { o.material = new T.MeshStandardMaterial({ color: 0xf2efe9, roughness: 0.65, metalness: 0, transparent: true,
-            opacity: 0.8, depthWrite: false, side: T.DoubleSide }); o.renderOrder = 2;
-            new T.TextureLoader().load('assets/3d/emblem_frost.png', tx => { tx.colorSpace = T.SRGBColorSpace; tx.flipY = false; o.material.map = tx; o.material.needsUpdate = true; st.dirty = true; }); }
+          if (n.startsWith('Gold')) o.material.envMapIntensity = 2.1;
+          // crystal over a photograph: premultiplied blend + alpha 0 = its reflections are simply added on the bar behind
+          if (n === 'Crystal') {
+            o.material = new T.MeshPhysicalMaterial({ color: 0x000000, roughness: 0.015, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.01,
+              envMapIntensity: 3.2, transparent: true, depthWrite: false, side: T.DoubleSide, premultipliedAlpha: true });
+            o.material.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>', '#include <dithering_fragment>\n  gl_FragColor.a = 0.0;'); };
+          }
+          if (n === 'Frost') {
+            o.material = new T.MeshStandardMaterial({ color: 0xf2efe9, roughness: 0.65, metalness: 0, transparent: true, opacity: 0.8, depthWrite: false, side: T.DoubleSide });
+            o.renderOrder = 2;
+            new T.TextureLoader().load('assets/3d/emblem_frost.png', tx => { tx.colorSpace = T.SRGBColorSpace; tx.flipY = false; o.material.map = tx; o.material.needsUpdate = true; st.dirty = true; });
+          }
         });
-        // soft contact shadows (a radial gradient on the mat)
+        // soft contact shadows (a radial gradient on the mat), following each object
         const sc = document.createElement('canvas'); sc.width = sc.height = 128; const cx = sc.getContext('2d');
         const gr = cx.createRadialGradient(64, 64, 4, 64, 64, 62); gr.addColorStop(0, 'rgba(0,0,0,0.75)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
         cx.fillStyle = gr; cx.fillRect(0, 0, 128, 128);
@@ -857,13 +832,13 @@ window.SilencioAct2 = (() => {
           m.rotation.x = -Math.PI / 2; m.scale.set(sx, sz, 1); m.position.set(obj.position.x, P.mat_top + 0.0006, obj.position.z); m.renderOrder = -1;
           scene.add(m); st.shadows.push({ m, obj, base: 0.55 });
         }
-        // the liquid: a lathe of the bowl's inside, rebuilt as the level rises
         st.liquidMat = new T.MeshPhysicalMaterial({ color: 0xb8651c, roughness: 0.08, metalness: 0, transparent: true, opacity: 0.88,
           envMapIntensity: 1.4, clearcoat: 1, side: T.DoubleSide, depthWrite: false });
         st.streamMat = new T.MeshPhysicalMaterial({ color: 0xc97a2a, roughness: 0.05, transparent: true, opacity: 0.92, envMapIntensity: 1.6, clearcoat: 1 });
         st.dirty = true;
       });
-      st.resize = () => { renderer.setSize(vw, vh, false); st.dirty = true; };
+      // the canvas is scaled up 1.2x with the card, so render 1.2x the pixels to stay sharp
+      st.resize = () => { renderer.setPixelRatio(Math.min((devicePixelRatio || 1) * 1.2, portrait ? 2 : 2.4)); renderer.setSize(bw, bh, false); st.dirty = true; };
       st.resize();
       glState = st;
       addEventListener('pointermove', e => { cursorX = e.clientX / innerWidth - 0.5; }, { passive: true });
@@ -885,14 +860,18 @@ window.SilencioAct2 = (() => {
     pts.push(new T.Vector2(0, z0 + level));
     st.liquid = new T.Mesh(new T.LatheGeometry(pts, 64), st.liquidMat); st.liquid.renderOrder = 1; st.glass.add(st.liquid);
   }
-  function pour(st, pr) {
-    const { T, P } = st, b = st.bottle, home = st.bottleHome, H = P.bottle.height, th = 112 * Math.PI / 180;
-    const gb = new T.Vector3().fromArray(P.glass.base), rimY = gb.y + P.glass.height;
+  function stage(st, sl, pr) {                             // sl: slide-in 0..1, pr: pour 0..1
+    const { T, P } = st, b = st.bottle, home = st.bottleHome, H = P.bottle.height, th = 112 * Math.PI / 180, S = T.MathUtils.smoothstep;
+    // pushed into the frame along the counter: a firm start that eases to a stop, the bottle first, the glass a beat later
+    const kb = 1 - Math.pow(1 - S(sl, 0, 0.8), 3), kg = 1 - Math.pow(1 - S(sl, 0.2, 1), 3);
+    const off = 1.1;                                       // metres off to each side: outside the landed view
+    st.glass.position.set(st.glassHome.x + (1 - kg) * off, st.glassHome.y, st.glassHome.z);
+    const gb = st.glass.position, rimY = gb.y + P.glass.height;
     const hover = new T.Vector3(gb.x - H * Math.sin(th), rimY + 0.055 - H * Math.cos(th), gb.z);
-    const S = st.T.MathUtils.smoothstep, k = pr < 0.82 ? S(pr, 0, 0.45) : 1 - S(pr, 0.82, 1);
-    b.position.set(lerp(home.p.x, hover.x, k), lerp(home.p.y, hover.y, 1 - Math.pow(1 - k, 2)), lerp(home.p.z, hover.z, k));
+    const k = pr < 0.82 ? S(pr, 0, 0.45) : 1 - S(pr, 0.82, 1);
+    const hx = home.p.x - (1 - kb) * off;
+    b.position.set(lerp(hx, hover.x, k), lerp(home.p.y, hover.y, 1 - Math.pow(1 - k, 2)), lerp(home.p.z, hover.z, k));
     b.rotation.z = home.r - th * Math.pow(k, 1.6);
-    // stream: from the mouth down to the liquid surface, while tipped
     const flow = S(pr, 0.40, 0.48) * (1 - S(pr, 0.76, 0.82));
     const level = (P.glass.fill_max - P.glass.bowl_floor) * S(pr, 0.44, 0.84);
     setLevel(st, level);
@@ -901,7 +880,7 @@ window.SilencioAct2 = (() => {
       b.updateMatrixWorld(true);
       const mouth = new T.Vector3(0, H + 0.004, 0).applyMatrix4(b.matrixWorld);
       const surf = new T.Vector3(gb.x, gb.y + P.glass.bowl_floor + level, gb.z);
-      const top = pr < 0.6 ? mouth : mouth.clone().lerp(surf, 1 - (1 - S(pr, 0.76, 0.82)));
+      const top = pr < 0.6 ? mouth : mouth.clone().lerp(surf, S(pr, 0.76, 0.82));
       const end = mouth.clone().lerp(surf, S(pr, 0.40, 0.47));
       const mid = top.clone().lerp(end, 0.5).add(new T.Vector3(0.008, 0, 0));
       st.stream = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([top, mid, end]), 24, 0.0032, 10), st.streamMat);
@@ -916,66 +895,55 @@ window.SilencioAct2 = (() => {
   function init(k) { K = k; card = k.cards; }
 
   function update(x) {                                     // x: svh scrolled into Act 2 (negative = not yet)
-    if (!B) return;
-    const { BEATS: Bt, clamp, seg, io3, out3 } = K;
-    const ex = seg(x, 0, Bt.expand), t = seg(x, Bt.expand, Bt.expand + Bt.turn);
-    const z = seg(x, Bt.expand + Bt.turn, Bt.expand + Bt.turn + Bt.zoom);
-    const pr = seg(x, Bt.expand + Bt.turn + Bt.zoom, Bt.expand + Bt.turn + Bt.zoom + Bt.pour);
+    if (!G) return;
+    const { BEATS: Bt, seg, io3, out3 } = K, e1 = Bt.turn, e2 = e1 + Bt.props, e3 = e2 + Bt.pour;
+    const t = seg(x, 0, e1), mv = io3(seg(x, 0, e1 * 0.4)), sl = seg(x, e1, e2), pr = seg(x, e2, e3);
     const on = x > 0;
-    root.style.visibility = on ? 'visible' : 'hidden';
-    // the words slide away, the card's frame and reflection fade (the view lies exactly over the card's picture)
-    const exit = out3(seg(x, 0, Bt.expand * 0.55));
-    card.copy.style.translate = `${-exit * 60}px 0`; card.copy.style.opacity = 1 - exit;
-    card.shade.style.opacity = x > 0 ? 1 - exit : '';
-    if (!on) { card.copy.style.translate = ''; card.copy.style.opacity = ''; return; }
+    // the frame grows 20% and glides to the centre; the words leave; the reflection (of the old picture) fades
+    card.arch.style.translate = on ? `${G.dx * mv}px ${G.dy * mv}px` : card.arch.style.translate;
+    card.arch.style.scale = on ? 1 + 0.2 * mv : '';
+    const exit = out3(seg(x, 0, e1 * 0.3));
+    card.copy.style.translate = on ? `${-exit * 80}px 0` : ''; card.copy.style.opacity = on ? 1 - exit : '';
+    card.shade.style.opacity = on ? 1 - exit * 0.6 : '';
+    card.reflect.style.opacity = on ? 0.3 * (1 - mv) : '';
+    inner.style.opacity = on ? 1 : 0;
+    if (!on) return;
 
-    // view + clip
-    const ke = io3(ex), V = ex < 1 ? mixView(B.Vcard, B.Vfull, ke) : (t < 1 ? B.Vfull : mixView(B.Vfull, B.Vend, io3(z)));
-    const bx = B.box;
-    const top = lerp(bx.t, 0, ke), left = lerp(bx.l, 0, ke), right = lerp(vw - bx.l - bx.w, 0, ke), bottom = lerp(vh - bx.t - bx.h, 0, ke);
-    const rad = B.radius.map(r => (r * (1 - ke)).toFixed(1) + 'px').join(' ');
-    view.style.clipPath = ex < 1 ? `inset(${top}px ${right}px ${bottom}px ${left}px round ${rad})` : 'none';
-
-    // turn: scrub the clip (chase, so wheel steps glide), the stills stand in until it can seek
-    const atTurn = ex >= 1 && t < 1, afterTurn = ex >= 1 && t >= 1;
-    place(f0, RECT.f1, V);
+    // the view eases from the card's own crop to the clip's framing while the clip plays
+    const V = mixView(G.Vcard, G.Vend, io3(t));
+    place(f0, FULL, V); place(f1, FULL, V); place(vid, R0, V);
     if (vidReady && vid.duration) {
       const want = t * (vid.duration - 0.05);
       scrubAt = Math.abs(want - scrubAt) > 1.5 ? want : scrubAt + (want - scrubAt) * 0.18;
       if (Math.abs(vid.currentTime - scrubAt) > 0.008) vid.currentTime = scrubAt;
-      place(vid, R0, V); vid.style.opacity = atTurn || (afterTurn && z === 0) ? 1 : 0;
+      vid.style.opacity = t < 1 ? 1 : 0;
+      f1.style.opacity = t < 1 ? 0 : 1;                    // the clip's last frame IS F1: the swap is invisible
+    } else {
+      vid.style.opacity = 0; f1.style.opacity = io3(t);    // clip not seekable (yet): crossfade the stills instead
     }
-    // zoom stack: shown from the end of the turn (or crossfaded in over the turn if the clip never became seekable)
-    const stackOn = afterTurn ? 1 : (ex >= 1 && !vidReady ? io3(t) : 0);
-    stack.style.opacity = stackOn;
-    if (stackOn > 0) { place(f1, RECT.f1, V); place(f2, RECT.f2, V); place(f3, RECT.f3, V); place(comp, RECT.f3, V); }
 
-    // props: fade in at the start of the zoom, locked to the same view
+    // props: pushed in once the frame has landed, locked to the same view
     const st = glState;
     if (st && st.bottle) {
-      canvas.style.opacity = afterTurn ? seg(z, 0, 0.12) : 0;
-      if (afterTurn) {
+      canvas.style.opacity = t >= 1 ? 1 : 0;
+      if (t >= 1) {
         st.cam.setViewOffset(IW, IH, V.l * IW, V.t * IH, V.w * IW, V.h * IH); st.cam.updateProjectionMatrix();
-        pour(st, pr); st.dirty = true;
+        stage(st, sl, pr); st.dirty = true;
       }
-    } else {
-      comp.style.opacity = afterTurn && glState === false ? seg(z, 0.85, 1) : 0;   // no WebGL: the rendered still arrives at the end
     }
-    lastX = x;
   }
 
   // one render callback on the shared ticker: only while the props are visible; the slow light sweep keeps it alive
   addEventListener('DOMContentLoaded', () => window.gsap && gsap.ticker.add((time) => {
-    const st = glState; if (!st || !st.bottle || canvas.style.opacity === '0' || canvas.style.opacity === '') return;
+    const st = glState; if (!st || !st.bottle || canvas.style.opacity !== '1') return;
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      sweepT = time;
       st.scene.environmentRotation.y = Math.PI + 0.28 * Math.sin(time * 0.22) + cursorX * 0.35;   // the light moving on the gold
       st.dirty = true;
     }
     if (st.dirty) { st.renderer.render(st.scene, st.cam); st.dirty = false; }
   }));
 
-  return { init, recompute: (toLeft) => { if (!K) return; archTy = parseFloat(card.arch.style.translate?.split(' ')[1]) || 0; recompute(toLeft); }, update, preload };
+  return { init, recompute: () => { if (K) recompute(); }, update, preload };
 })();
 
 </script>
@@ -1012,11 +980,11 @@ addEventListener('DOMContentLoaded', () => {
   const out3 = t => 1 - Math.pow(1 - t, 3), io3 = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   const fade = (el, o) => { el.style.opacity = o; el.style.visibility = o < 0.01 ? 'hidden' : ''; };
   const ACT1 = 320, A2_AT = 0.62 * ACT1;                                    // svh
-  const BEATS = { expand: 80, turn: 160, zoom: 200, pour: 120, rest: 40 }; // svh
+  const BEATS = { turn: 200, props: 60, pour: 140, rest: 40 };            // svh
   const A2_LEN = Object.values(BEATS).reduce((a, b) => a + b, 0);
   scene.style.height = (100 + A2_AT + A2_LEN) + 'svh';
   const act2 = window.SilencioAct2;
-  if (act2) act2.init({ BEATS, clamp, seg, io3, out3, cards: { arch, pane: Q('.arch .pane'), copy: Q('.bar-copy'), shade, logo } });
+  if (act2) act2.init({ BEATS, clamp, seg, io3, out3, cards: { arch, pane: Q('.arch .pane'), reflect: Q('.arch-reflect'), copy: Q('.bar-copy'), shade, logo } });
 
   // ── cached geometry: recomputed on load and on resize, never inside the ticker ──
   const m = {};
@@ -1077,7 +1045,8 @@ addEventListener('DOMContentLoaded', () => {
     // the bar image rises, the words arrive, then a slow push in
     const a = io3(seg(p, 0.165, 0.365));
     shade.style.opacity = seg(p, 0.14, 0.32);
-    arch.style.translate = `0 ${(1 - a) * vh * 0.55}px`; arch.style.opacity = clamp(a * 1.6);
+    if (sv < A2_AT) arch.style.translate = `0 ${(1 - a) * vh * 0.55}px`;   // from A2_AT on, Act 2 moves the card
+    arch.style.opacity = clamp(a * 1.6);
     photo.style.scale = 1.2 - 0.2 * a;            // settles to exactly 1, so Act 2 can take over from the card pixel-for-pixel
     words.forEach((el, i) => { const w = out3(seg(p, 0.28 + i * 0.07, 0.44 + i * 0.07)); el.style.clipPath = `inset(0 ${(1 - w) * 100}% 0 0)`; });
   });
