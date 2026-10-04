@@ -83,7 +83,7 @@ html.sl-lock [data-intro-logo-slot]{opacity:0}
 .sl-orn--br{bottom:var(--ib);right:var(--ir);transform:scaleY(-1)}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&family=Prata&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/img/hero-world.webp" media="(min-aspect-ratio: 1001/1000)">
 <link rel="preload" as="image" href="assets/img/hero-fg.webp" media="(min-aspect-ratio: 1001/1000)">
 <link rel="preload" as="image" href="assets/img/hero-world-portrait.webp" media="(max-aspect-ratio: 1/1)">
@@ -276,7 +276,7 @@ html.js-motion [data-reveal]{animation:reveal-failsafe 0s 30s forwards}
   -webkit-mask-image:linear-gradient(0deg,#000 0,transparent 42%);mask-image:linear-gradient(0deg,#000 0,transparent 42%)}
 .arch-reflect img{width:100%;height:100%;object-fit:cover;border-radius:0 0 11px 11px;display:block}
 .bar-copy{position:absolute;z-index:3;left:calc(var(--pad) + 2vw);top:50%;transform:translateY(-30%);max-width:min(320px,18vw)}
-.bar-copy h2{margin-top:24px;font:italic 400 clamp(24px,2.4vw,38px)/1.22 'Bodoni Moda',serif;letter-spacing:-.005em;color:#EDEBEF;padding-bottom:.08em}
+.bar-copy h2{margin-top:24px;font:400 clamp(24px,2.3vw,36px)/1.3 Prata,serif;letter-spacing:0;color:#EDEBEF;padding-bottom:.08em}
 .bar-copy h2 .gold{color:var(--gold)}
 .bar-copy h2{text-wrap:balance}
 .bar-copy .small{margin-top:22px;font:500 11px/1 Manrope,sans-serif;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
@@ -324,7 +324,7 @@ html.js-motion .hero .bar.glass::before{will-change:opacity}
 .act2{position:relative;height:100svh;min-height:360px;overflow:hidden;background:#0B0A0D}
 .a2-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.7)}
 .a2-copy{position:absolute;left:0;right:0;bottom:12svh;padding:0 var(--pad);text-align:center;z-index:2}
-.a2-copy h2{margin-top:18px;font:italic 400 clamp(30px,3.4vw,54px)/1.1 'Bodoni Moda',serif;color:#EDEBEF;padding-bottom:.08em;text-wrap:balance}
+.a2-copy h2{margin-top:18px;font:400 clamp(28px,3vw,46px)/1.2 Prata,serif;color:#EDEBEF;padding-bottom:.08em;text-wrap:balance}
 .a2-copy .small{margin-top:16px;font:500 11px/1 Manrope,sans-serif;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
 html.js-motion .act2{display:block;position:absolute;inset:0;z-index:6;pointer-events:none;background:none;min-height:0;overflow:visible}
 html.js-motion .a2-still{display:none}
@@ -338,6 +338,48 @@ html.js-motion .a2-in{display:block;position:absolute;inset:0;opacity:0;backgrou
 @media (max-height:500px) and (orientation:landscape){
   .a2-copy h2{font-size:clamp(20px,2.6vw,30px);margin-top:8px}
   .a2-copy .small{display:none}
+}
+
+/* ══ Act 3: the vision ══ */
+.vision{position:relative;height:100svh;min-height:520px;overflow:hidden;color:var(--ink);
+  background:radial-gradient(ellipse 26% 60% at 71% 8%,rgba(255,212,160,.10),transparent 72%),
+             linear-gradient(180deg,#0B0B0D 0%,#0B0B0D 60%,#121115 76%,#0A0A0C 100%)}
+.vz-copy{position:absolute;z-index:1;left:calc(var(--pad) + 2vw);top:50%;transform:translateY(-50%);max-width:min(520px,40vw)}
+.vz-copy h2{margin-top:24px;font:400 clamp(32px,3.3vw,54px)/1.16 Prata,serif;color:#EDEBEF;text-wrap:balance}
+.vz-body{margin-top:24px;color:var(--muted);font-size:clamp(15px,1.1vw,17px);line-height:1.7;max-width:40ch}
+.vz-still{position:absolute;left:55%;top:30%;width:34vw;height:auto;z-index:1}
+.vz-blur{position:absolute;inset:0;z-index:2;opacity:0;pointer-events:none;background:rgba(9,9,11,.55);
+  backdrop-filter:blur(16px) saturate(110%);-webkit-backdrop-filter:blur(16px) saturate(110%);transition:opacity .8s var(--ease)}
+.vz-gl{position:absolute;inset:0;width:100%;height:100%;z-index:3;display:none}
+.vz-hit{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* keyboard / screen reader access */
+.vz-ui{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .6s var(--ease)}
+.vz-hint{position:absolute;left:0;right:0;bottom:max(32px,5svh);text-align:center;font:500 11px/1 Manrope,sans-serif;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
+.vz-close{position:absolute;top:26px;right:var(--pad);display:inline-flex;align-items:center;gap:12px;height:44px;padding:0 4px;background:none;border:0;cursor:pointer;
+  color:var(--ink);font:500 11px/1 Manrope,sans-serif;letter-spacing:.3em;text-transform:uppercase}
+.vz-close span{position:relative;width:16px;height:16px}
+.vz-close span::before,.vz-close span::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:currentColor;rotate:45deg}
+.vz-close span::after{rotate:-45deg}
+.vz-close:focus-visible{outline:1px solid var(--gold);outline-offset:4px}
+.vz-logo{display:none}
+html.vz-inspecting .vz-blur{opacity:1}
+html.vz-inspecting .vz-ui{opacity:1}
+html.vz-inspecting .vz-ui button{pointer-events:auto}
+html.js-motion .vision{position:absolute;inset:0;z-index:8;visibility:hidden;min-height:0;will-change:translate}
+html.js-motion .vz-gl{display:block;pointer-events:none}
+html.js-motion .vision.is-live .vz-gl{pointer-events:auto}
+html.js-motion .vision [data-wipe]{clip-path:inset(0 100% 0 0);will-change:clip-path,translate}
+html.js-motion .vz-logo{display:block;position:fixed;z-index:20;visibility:hidden;pointer-events:none}
+html.js-motion .scene-pin .vz-logo{position:absolute}
+@media (max-aspect-ratio:1/1){
+  .vision{background:radial-gradient(ellipse 60% 40% at 50% 46%,rgba(255,212,160,.09),transparent 72%),linear-gradient(180deg,#0B0B0D 0%,#0B0B0D 72%,#121115 86%,#0A0A0C 100%)}
+  .vz-copy{left:var(--pad);right:var(--pad);top:14svh;transform:none;max-width:none;text-align:center}
+  .vz-copy h2{font-size:clamp(26px,7vw,40px)}
+  .vz-body{margin-left:auto;margin-right:auto}
+  .vz-still{left:13%;top:56%;width:74vw}
+}
+@media (max-height:500px) and (orientation:landscape){
+  .vz-copy h2{font-size:clamp(22px,2.6vw,32px);margin-top:12px}
+  .vz-body{font-size:13px;margin-top:12px}
 }
 </style>
 </head>
@@ -453,6 +495,23 @@ html.js-motion .a2-in{display:block;position:absolute;inset:0;opacity:0;backgrou
     <p class="small" data-wipe>Rare pours, for members and their guests</p>
   </div>
 </section>
+<!-- ══ Act 3: the vision, and the membership card (live 3D: hover to lift it, click to inspect) ══ -->
+<section class="vision" aria-labelledby="vz-title">
+  <div class="vz-copy">
+    <p class="label" data-wipe>Our vision</p>
+    <h2 id="vz-title" data-wipe>The benchmark for luxury, influence and belonging.</h2>
+    <p class="vz-body" data-wipe>To become the most influential private membership community in Africa, from Lagos to Abuja to South Africa, by 2030.</p>
+  </div>
+  <img class="vz-still" src="assets/img/card-front.webp" alt="The SILÊNCIO membership card: black metal, the emblem and wordmark in raised chrome" loading="lazy" decoding="async">
+  <i class="vz-blur" aria-hidden="true"></i>
+  <canvas class="vz-gl" aria-hidden="true"></canvas>
+  <button class="vz-hit" type="button">Inspect the membership card</button>
+  <div class="vz-ui" aria-live="polite">
+    <p class="vz-hint">Drag to turn &nbsp;·&nbsp; click the card to flip it</p>
+    <button class="vz-close" type="button" aria-label="Close the card"><span aria-hidden="true"></span>Close</button>
+  </div>
+</section>
+<img class="vz-logo" src="assets/img/emblem.webp" alt="" aria-hidden="true">
 </div>
 </div>
 <!-- next section: to be designed. A quiet placeholder so the scene can release into it. -->
@@ -838,6 +897,234 @@ window.SilencioAct2 = (() => {
 
 </script>
 <script>
+/* ══ Act 3: the vision, and the card ══
+   cross   the bar scene scrolls up and away while the vision section rises in from below (a real-feeling scroll),
+           and the emblem glides from the top-left back to the top centre, where it sat in the hero
+   vision  the words write in; the membership card turns slowly over a barely-there mirror floor
+   The card is live 3D (the Blender card's own geometry; its pressed pattern rebuilt from the same height tile).
+     hover   it lifts, still turning                click   it comes to the centre over a blurred page
+     inspect drag turns it, a click flips it, the cursor tilts it; click away, the close button or Esc returns it  */
+window.SilencioVision = (() => {
+  const Q = s => document.querySelector(s), QA = s => [...document.querySelectorAll(s)];
+  const sec = Q('.vision'), canvas = Q('.vz-gl'), still = Q('.vz-still'), blur = Q('.vz-blur'), ui = Q('.vz-ui');
+  const closeBtn = Q('.vz-close'), hitBtn = Q('.vz-hit'), vlogo = Q('.vz-logo'), words = QA('.vision [data-wipe]');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let K, ctx = {}, vw = 1, vh = 1, portrait = false, logoRest = null, toLeft = 0, k = 0, active = false;
+  let st = null, loading = false, mode = 'rest';                       // rest | inspect
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const damp = (cur, tgt, rate, dt) => cur + (tgt - cur) * (1 - Math.exp(-rate * dt));
+
+  function init(k_) { K = k_; ctx = k_.ctx; }
+
+  function recompute() {
+    vw = innerWidth; vh = Q('.scene-pin').clientHeight; portrait = matchMedia('(max-aspect-ratio: 1/1)').matches;
+    const L = ctx.logo, keep = L.style.translate; L.style.translate = '';
+    const r = L.getBoundingClientRect(); L.style.translate = keep;
+    logoRest = { l: r.left, t: r.top, w: r.width };
+    vlogo.style.width = vlogo.style.height = r.width + 'px'; vlogo.style.left = r.left + 'px'; vlogo.style.top = r.top + 'px';
+    toLeft = parseFloat(getComputedStyle(ctx.nav).paddingLeft) - ctx.logo.offsetLeft;
+    if (st) layout();
+  }
+
+  // ── the card's resting place: right half (desktop) or under the words (portrait), in world units at z = 0 ──
+  function layout() {
+    const { cam, renderer } = st;
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); renderer.setSize(vw, vh, false);
+    cam.aspect = vw / vh; cam.updateProjectionMatrix();
+    const upp = 2 * Math.tan(cam.fov * Math.PI / 360) * cam.position.z / vh;           // world units per CSS px at z = 0
+    const toW = (px, py) => [(px - vw / 2) * upp, (vh / 2 - py) * upp];
+    const restW = portrait ? Math.min(vw * 0.74, vh * 0.42) : Math.min(vw * 0.34, vh * 0.62);
+    const [rx, ry] = portrait ? toW(vw / 2, vh * 0.72) : toW(vw * 0.71, vh * 0.52);
+    const inspW = portrait ? vw * 0.86 : Math.min(vw * 0.5, vh * 0.95);
+    st.rest = { x: rx, y: ry, s: restW * upp / st.cardW };
+    st.insp = { x: 0, y: portrait ? 0.02 * vh * upp : 0, s: inspW * upp / st.cardW };
+    st.floorY = ry - st.cardH * st.rest.s / 2;
+    st.upp = upp;
+    still.style.width = restW + 'px';
+    still.style.left = (portrait ? vw / 2 : vw * 0.71) - restW / 2 + 'px';
+    still.style.top = (portrait ? vh * 0.72 : vh * 0.52) - restW * st.cardH / st.cardW / 2 + 'px';
+  }
+
+  function preload() {
+    if (loading || reduce) return; loading = true;
+    const test = document.createElement('canvas');
+    if (!(test.getContext('webgl2') || test.getContext('webgl'))) return;           // the still card stays
+    import('./assets/vendor/three/three-bar.min.js').then(T => {
+      const renderer = new T.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+      renderer.outputColorSpace = T.SRGBColorSpace; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+      const scene = new T.Scene(), cam = new T.PerspectiveCamera(28, vw / vh, 0.1, 100); cam.position.set(0, 0, 14);
+      const pm = new T.PMREMGenerator(renderer);
+      new T.TextureLoader().load('assets/3d/env_studio.png', tex => {                 // neutral studio: black stays black, chrome reads chrome
+        tex.mapping = T.EquirectangularReflectionMapping; tex.colorSpace = T.SRGBColorSpace;
+        scene.environment = pm.fromEquirectangular(tex).texture; tex.dispose();
+      });
+      const tl = new T.TextureLoader();
+      const map = (f, srgb) => { const t = tl.load('assets/3d/' + f); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(13.44, 13.44); t.colorSpace = srgb ? T.SRGBColorSpace : T.NoColorSpace; t.anisotropy = 8; return t; };
+      const mats = {
+        Card_Body: new T.MeshPhysicalMaterial({ map: map('card_color.webp', true), roughnessMap: map('card_rough.webp'), normalMap: map('card_normal.webp'),
+          normalScale: new T.Vector2(0.9, 0.9), metalness: 1, roughness: 1, envMapIntensity: 1.6, clearcoat: 0.25, clearcoatRoughness: 0.35 }),
+        Card_Edge: new T.MeshPhysicalMaterial({ color: 0xf2f2f4, metalness: 1, roughness: 0.05, envMapIntensity: 1.8 }),
+        Card_Relief: new T.MeshPhysicalMaterial({ color: 0xededf0, metalness: 1, roughness: 0.12, envMapIntensity: 2.0 }),
+      };
+      const draco = new T.DRACOLoader(); draco.setDecoderPath('assets/vendor/three/draco/');
+      const gl = new T.GLTFLoader(); gl.setDRACOLoader(draco);
+      gl.load('assets/3d/silencio-card.glb', g => {
+        g.scene.traverse(o => {
+          if (!o.isMesh) return;
+          const name = o.material.name; o.material = mats[name] || mats.Card_Relief;
+          if (name !== 'Card_Body') return;
+          // Blender projected the pattern from the card's own coordinates (Object texcoords); rebuild that projection:
+          // the card's face plane is local x / -z after the glTF Y-up conversion, 3.2 units wide
+          const pos = o.geometry.attributes.position, uv = new Float32Array(pos.count * 2);
+          for (let i = 0; i < pos.count; i++) { uv[2 * i] = pos.getX(i) / 3.2; uv[2 * i + 1] = -pos.getZ(i) / 3.2; }
+          o.geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
+        });
+        const box = new T.Box3().setFromObject(g.scene), c = box.getCenter(new T.Vector3()), size = box.getSize(new T.Vector3());
+        g.scene.position.sub(c);                                                     // pivot at the card's centre
+        const card = new T.Group(); card.add(g.scene); scene.add(card);
+        // the reflection: the same card mirrored in the floor, very faint, fading with depth below the floor
+        const refl = new T.Group(); const rs = g.scene.clone(true); refl.add(rs); scene.add(refl);
+        const uFloor = { value: 0 }, uFade = { value: 1 }, uAlpha = { value: 0.075 };
+        const rmats = {};
+        rs.traverse(o => {
+          if (!o.isMesh) return;
+          const m = rmats[o.material.uuid] || (rmats[o.material.uuid] = (() => {
+            const mm = o.material.clone(); mm.transparent = true; mm.depthWrite = false;
+            mm.onBeforeCompile = sh => {
+              Object.assign(sh.uniforms, { uFloor, uFade, uAlpha });
+              sh.vertexShader = 'varying float vWY;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vWY = (modelMatrix * vec4(transformed, 1.0)).y;');
+              sh.fragmentShader = 'varying float vWY; uniform float uFloor, uFade, uAlpha;\n' + sh.fragmentShader.replace('#include <dithering_fragment>',
+                '#include <dithering_fragment>\n gl_FragColor.a *= uAlpha * smoothstep(uFade, 0.0, uFloor - vWY);');
+            };
+            return mm; })());
+          o.material = m;
+        });
+        st = { T, renderer, scene, cam, card, refl, uFloor, uFade, uAlpha, cardW: size.x, cardH: size.y, ray: new T.Raycaster(), ptr: new T.Vector2(),
+               pos: { x: 0, y: 0, s: 1 }, yaw: -0.5, pitch: 0, yawT: -0.5, pitchT: 0, lift: 0, hover: false, tiltX: 0, tiltY: 0, inspectK: 0, ready: false };
+        layout();
+        Object.assign(st.pos, { x: st.rest.x, y: st.rest.y, s: st.rest.s });
+        st.ready = true; still.style.visibility = 'hidden';
+        bindPointer();
+      });
+    }).catch(() => {});
+  }
+
+  // ── pointer: hover and click to inspect; in inspect, drag to turn, click to flip, click away to close ──
+  function hits(e) {
+    if (!st || !st.ready) return false;
+    st.ptr.set(e.clientX / vw * 2 - 1, -(e.clientY / vh) * 2 + 1); st.ray.setFromCamera(st.ptr, st.cam);
+    return st.ray.intersectObject(st.card, true).length > 0;
+  }
+  let down = null;
+  function bindPointer() {
+    canvas.addEventListener('pointermove', e => {
+      if (!active) return;
+      const h = hits(e);
+      if (mode === 'rest') { st.hover = h; canvas.style.cursor = h ? 'pointer' : ''; }
+      else {
+        canvas.style.cursor = down ? 'grabbing' : (h ? 'grab' : 'zoom-out');
+        st.tiltX = (e.clientY / vh - 0.5) * 0.35; st.tiltY = (e.clientX / vw - 0.5) * 0.45;
+        if (down) {
+          const dx = e.clientX - down.x, dy = e.clientY - down.y; down.moved = Math.max(down.moved, Math.hypot(dx, dy));
+          st.yawT = down.yaw + dx * 0.008; st.pitchT = Math.max(-1.2, Math.min(1.2, down.pitch + dy * 0.006));
+        }
+      }
+    });
+    canvas.addEventListener('pointerdown', e => {
+      if (!active) return;
+      down = { x: e.clientX, y: e.clientY, yaw: st.yawT, pitch: st.pitchT, moved: 0, hit: hits(e) };
+      if (mode === 'inspect' && down.hit) canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointerup', e => {
+      if (!active || !down) return;
+      const click = down.moved < 6, hit = down.hit; down = null;
+      if (!click) return;
+      if (mode === 'rest' && hit) open();
+      else if (mode === 'inspect' && hit) st.yawT += Math.PI;                       // flip
+      else if (mode === 'inspect') close();
+    });
+    canvas.addEventListener('pointerleave', () => { if (st) st.hover = false; });
+  }
+  const block = e => { if (mode === 'inspect') e.preventDefault(); };
+  function keys(e) {
+    if (mode !== 'inspect') return;
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key === 'ArrowLeft') st.yawT -= 0.4; else if (e.key === 'ArrowRight') st.yawT += 0.4;
+    else if (e.key === 'ArrowUp') st.pitchT = Math.max(-1.2, st.pitchT - 0.3); else if (e.key === 'ArrowDown') st.pitchT = Math.min(1.2, st.pitchT + 0.3);
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'Enter') st.yawT += Math.PI;
+    else if (![' ', 'PageUp', 'PageDown', 'Home', 'End'].includes(e.key)) return;
+    e.preventDefault();
+  }
+  function open() {
+    if (!st || !st.ready || mode === 'inspect') return;
+    mode = 'inspect'; st.hover = false;
+    st.yawT = Math.round(st.yaw / (2 * Math.PI)) * 2 * Math.PI;                       // settle face-on, then it's theirs
+    st.pitchT = 0;
+    document.documentElement.classList.add('vz-inspecting');
+    addEventListener('wheel', block, { passive: false }); addEventListener('touchmove', block, { passive: false }); addEventListener('keydown', keys);
+    closeBtn.focus({ preventScroll: true });
+  }
+  function close() {
+    if (mode !== 'inspect') return;
+    mode = 'rest'; st.pitchT = 0; st.tiltX = st.tiltY = 0;
+    document.documentElement.classList.remove('vz-inspecting');
+    removeEventListener('wheel', block); removeEventListener('touchmove', block); removeEventListener('keydown', keys);
+    hitBtn.focus({ preventScroll: true });
+  }
+  closeBtn.addEventListener('click', close);
+  hitBtn.addEventListener('click', open);
+
+  // ── scroll: x = svh scrolled into Act 3 ──
+  function update(x) {
+    if (!K || !logoRest) return;
+    const { BEATS: B, seg, io3, out3 } = K;
+    k = seg(x, 0, B.cross);
+    const on = x > 0;
+    sec.style.visibility = on ? 'visible' : 'hidden';
+    sec.style.translate = `0 ${(1 - k) * vh}px`;
+    for (const el of ctx.lift) el.style.translate = on ? `0 ${-k * vh}px` : '';          // the bar scene scrolls away
+    // the emblem: leaves the hero's nav and glides from the top-left back to the top centre
+    const kl = io3(seg(x, B.cross * 0.15, B.cross * 0.95));
+    ctx.logo.style.visibility = on ? 'hidden' : '';
+    vlogo.style.visibility = on ? 'visible' : 'hidden';
+    vlogo.style.translate = `${toLeft * (1 - kl)}px 0`;
+    words.forEach((el, i) => {
+      const w = out3(seg(x, B.cross * (0.55 + i * 0.16), B.cross * (0.55 + i * 0.16) + B.cross * 0.5));
+      el.style.clipPath = `inset(-0.2em ${(1 - w) * 100}% -0.3em 0)`; el.style.translate = `0 ${(1 - w) * 14}px`;
+    });
+    const nowActive = k > 0.98;
+    if (nowActive !== active) { active = nowActive; sec.classList.toggle('is-live', active); if (!active) close(); }
+  }
+
+  // ── one render callback on the shared ticker, only while the section is on screen ──
+  addEventListener('DOMContentLoaded', () => window.gsap && gsap.ticker.add((time, deltaMs) => {
+    if (!st || !st.ready || k <= 0) return;
+    const dt = Math.min(0.05, deltaMs / 1000), ins = mode === 'inspect';
+    st.inspectK = damp(st.inspectK, ins ? 1 : 0, 6, dt);
+    if (!ins) st.yawT += dt * (2 * Math.PI / 16);                                     // one slow turn every 16 s
+    st.lift = damp(st.lift, st.hover && !ins ? 1 : 0, 7, dt);
+    const tgt = ins ? st.insp : st.rest;
+    st.pos.x = damp(st.pos.x, tgt.x, 5, dt); st.pos.y = damp(st.pos.y, tgt.y, 5, dt); st.pos.s = damp(st.pos.s, tgt.s, 5, dt);
+    st.yaw = damp(st.yaw, st.yawT, ins ? 7 : 3, dt); st.pitch = damp(st.pitch, st.pitchT, 7, dt);
+    const tx = ins && !down ? st.tiltX : 0, ty = ins && !down ? st.tiltY : 0;
+    const lift = st.lift * st.cardH * st.rest.s * 0.16 + Math.sin(time * 1.6) * st.lift * st.cardH * st.rest.s * 0.012;
+    const c = st.card;
+    c.position.set(st.pos.x, st.pos.y + lift, 0); c.scale.setScalar(st.pos.s * (1 + st.lift * 0.03));
+    c.rotation.set(st.pitch + tx, st.yaw + ty, 0, 'YXZ');
+    // reflection: mirrored about the floor, fading out while inspecting
+    const fy = st.floorY; st.uFloor.value = fy; st.uFade.value = st.cardH * st.rest.s * 0.55;
+    st.uAlpha.value = 0.075 * (1 - st.inspectK);
+    st.refl.visible = st.uAlpha.value > 0.002;
+    st.refl.position.set(c.position.x, 2 * fy - c.position.y, 0); st.refl.scale.set(c.scale.x, -c.scale.y, c.scale.z);
+    st.refl.rotation.set(-(st.pitch + tx), st.yaw + ty, 0, 'YXZ');
+    st.renderer.render(st.scene, st.cam);
+  }));
+
+  return { init, recompute: () => { if (K) recompute(); }, update, preload };
+})();
+
+</script>
+<script>
 /* ══ Scroll: hero → the bar. One loop (gsap.ticker), one progress value from the scene runway. ══
    Beat sheet (p = progress through 320svh of pinned travel). Every cue is listed here and nowhere else.
      cells      0.00 → 0.13   the four glass cells sink and fade one after another; the glass itself goes at 0.03 → 0.12
@@ -870,11 +1157,13 @@ addEventListener('DOMContentLoaded', () => {
   const out3 = t => 1 - Math.pow(1 - t, 3), io3 = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   const fade = (el, o) => { el.style.opacity = o; el.style.visibility = o < 0.01 ? 'hidden' : ''; };
   const ACT1 = 320, A2_AT = 0.62 * ACT1;                                    // svh
-  const BEATS = { turn: 160, hold: 14 };                                  // svh: the clip runs over 160; the pin lets go 14 later
+  const BEATS = { turn: 160, cross: 70, vision: 110 };                    // svh: clip; the bar scrolls away as the vision rises; the vision holds
   const A2_LEN = Object.values(BEATS).reduce((a, b) => a + b, 0);
   scene.style.height = (100 + A2_AT + A2_LEN) + 'svh';
   const act2 = window.SilencioAct2;
   if (act2) act2.init({ BEATS, clamp, seg, io3, out3, cards: { arch, pane: Q('.arch .pane'), reflect: Q('.arch-reflect'), copy: Q('.bar-copy'), shade, logo, hero } });
+  const vision = window.SilencioVision;
+  if (vision) vision.init({ BEATS, clamp, seg, io3, out3, ctx: { logo, nav, lift: [hero, Q('.bar-section'), Q('.act2')] } });
 
   // ── cached geometry: recomputed on load and on resize, never inside the ticker ──
   const m = {};
@@ -890,6 +1179,7 @@ addEventListener('DOMContentLoaded', () => {
     const r = worldImg.getBoundingClientRect(), hb = hero.getBoundingClientRect();
     m.maxPan = Math.max(0, r.bottom + pan - hb.bottom - 2);
     if (act2) act2.recompute(m.toLeft);
+    if (vision) vision.recompute();
   }
   recompute();
   if (!worldImg.complete) worldImg.addEventListener('load', recompute, { once: true });
@@ -902,9 +1192,9 @@ addEventListener('DOMContentLoaded', () => {
   gsap.ticker.add(() => {
     const scrolled = scrollY - m.sceneTopAbs;
     const sv = scrolled / m.pinVh * 100;                                    // svh scrolled into the scene
-    if (act2 && sv !== lastSv) { lastSv = sv; act2.update(sv - A2_AT); }
+    if (act2 && sv !== lastSv) { lastSv = sv; act2.update(sv - A2_AT); if (vision) vision.update(sv - A2_AT - BEATS.turn); }
     const p = clamp(sv / ACT1);
-    if (act2 && !preloaded && p > 0.05) { preloaded = true; act2.preload(); }
+    if (act2 && !preloaded && p > 0.05) { preloaded = true; act2.preload(); if (vision) vision.preload(); }
     if (p === last) return;
     const first = last < 0; last = p;
     if (first && p === 0) return;                     // at rest: leave the hero exactly as revealed
