@@ -22,6 +22,7 @@ app.use((req, res, next) => { res.set('X-Robots-Tag', 'noindex, nofollow'); next
 app.set('trust proxy', true);
 const indexHtml = fs.readFileSync(path.join(__dirname, 'site', 'index.html'), 'utf8');
 app.get(['/', '/index.html'], (req, res) => {
+  res.set('Cache-Control', 'no-cache');            // phones re-check the page on every visit, so updates show up
   res.type('html').send(indexHtml.split('__ORIGIN__').join(`${req.protocol}://${req.get('host')}`));
 });
 

@@ -881,6 +881,7 @@ window.SilencioAct2 = (() => {
   }
 
   // ── the clip: a small player that runs forward or backward on its own ──
+  const RATE = 1.1;                                       // the clip plays 10% faster than it was rendered
   const P = { D: 5.0, pos: 0, dir: 0, ready: 0, active: null, pending: null, lastT: 0 };   // pos: forward seconds, 0..D
   function preload() {
     const hi = bw * 1.2 * Math.min(devicePixelRatio || 1, 2) > 1100 ? 1920 : 1280;
@@ -889,7 +890,11 @@ window.SilencioAct2 = (() => {
     for (const [v, src] of [[vF, `assets/video/bar-turn-${hi}.mp4`], [vR, `assets/video/bar-turn-${hi}-rev.mp4`]]) {
       v.src = src; v.preload = 'auto'; v.muted = true; v.load();
       v.addEventListener('loadedmetadata', () => { P.D = v.duration || P.D; }, { once: true });
-      v.addEventListener('canplay', () => { P.ready |= v === vF ? 1 : 2; }, { once: true });
+      // iOS Safari ignores preload until play() is called: play muted (allowed inline) to start buffering, then park at 0
+      v.addEventListener('loadeddata', () => { P.ready |= v === vF ? 1 : 2; }, { once: true });
+      v.defaultPlaybackRate = v.playbackRate = RATE;
+      const prime = () => v.play().then(() => { if (P.active !== v && P.pending !== v) { v.pause(); v.currentTime = 0; } }).catch(() => {});
+      prime(); addEventListener('touchstart', prime, { once: true, passive: true });
     }
   }
   // show `v` from forward-time `pos`, playing; keep the old video on screen until the new one has a frame to show
@@ -899,6 +904,7 @@ window.SilencioAct2 = (() => {
     P.pending = v; other.pause();
     const go = () => {
       if (P.pending !== v) return;
+      v.playbackRate = RATE;
       v.play().then(() => {
         const swap = () => { if (P.pending !== v) return; P.active = v; P.pending = null; w(v, 'opacity', 1); w(other, 'opacity', 0); };
         v.requestVideoFrameCallback ? v.requestVideoFrameCallback(swap) : swap();
@@ -947,6 +953,8 @@ window.SilencioAct2 = (() => {
       if (P.dir <= 0 && acc > 1.2) setDir(1);
       if (P.dir >= 0 && acc < -1.2) setDir(-1);
     } else if (x <= 0) setDir(-1);
+    const L = window.SilencioLenis;
+    if (L) { const slow = x > -10 && x < Bt.turn * 0.85; L.options.wheelMultiplier = slow ? 0.45 : 0.9; }
     const mv = io3(seg(x, 0, Bt.turn * 0.4)), on = x > 0;
     // the frame grows 20% and glides to the centre; the old words leave; the reflection (of the old picture) fades
     if (on) w(card.arch, 'translate', `${(G.dx * mv).toFixed(2)}px ${(G.dy * mv).toFixed(2)}px`);
@@ -1271,14 +1279,25 @@ addEventListener('DOMContentLoaded', () => {
     const r = worldImg.getBoundingClientRect(), hb = hero.getBoundingClientRect();
     m.maxPan = Math.max(0, r.bottom + pan - hb.bottom - 2);
     m.dirty = true;                                    // after a resize, re-run the act-1 cues once
+    const lifted = [hero, Q('.bar-section'), Q('.act2')], keep = lifted.map(el => el.style.translate);
+    lifted.forEach(el => { el.style.translate = ''; });
     if (act2) act2.recompute(m.toLeft);
     if (vision) vision.recompute();
+    lifted.forEach((el, i) => { el.style.translate = keep[i]; });
   }
   recompute();
   if (!worldImg.complete) worldImg.addEventListener('load', recompute, { once: true });
   addEventListener('load', recompute);
   let resizeQueued = false;
-  addEventListener('resize', () => { if (resizeQueued) return; resizeQueued = true; requestAnimationFrame(() => { resizeQueued = false; recompute(); }); });
+  let lastW = innerWidth, lastPinH = pin.clientHeight;
+  addEventListener('resize', () => {
+    if (resizeQueued) return; resizeQueued = true;
+    requestAnimationFrame(() => {
+      resizeQueued = false;
+      if (innerWidth === lastW && pin.clientHeight === lastPinH) return;   // URL bar only: nothing on the page changed size
+      lastW = innerWidth; lastPinH = pin.clientHeight; recompute();
+    });
+  });
   addEventListener('orientationchange', recompute);
 
   let last = -1, lastSv = -1e9, preloaded = false;
