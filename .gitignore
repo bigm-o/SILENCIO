@@ -4,14 +4,14 @@ blend/
 # Render frames
 frames/
 
-# Raw assets & scripts
-assets/
-scripts/
-logs/
-tests/
-previews/
-refs/
-data/
+# Top-level raw assets & tooling (not part of the web build)
+/assets/
+/scripts/
+/logs/
+/tests/
+/previews/
+/refs/
+/data/
 
 # Blender/Python cache
 __pycache__/
@@ -25,4 +25,3 @@ __pycache__/
 
 # Node
 node_modules/
-

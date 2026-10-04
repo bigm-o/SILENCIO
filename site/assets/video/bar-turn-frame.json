@@ -1,0 +1,10 @@
+{
+ "rect_in_16x9_still": [
+  0.00986,
+  0.01008,
+  0.98958,
+  0.98981
+ ],
+ "frames": 121,
+ "note": "show the start/end stills through this rect (of their 16:9 crop) and they equal the video ends"
+}
