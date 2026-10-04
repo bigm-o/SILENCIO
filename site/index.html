@@ -89,6 +89,7 @@ html.sl-lock [data-intro-logo-slot]{opacity:0}
 <link rel="preload" as="image" href="assets/img/hero-world-portrait.webp" media="(max-aspect-ratio: 1/1)">
 <link rel="preload" as="image" href="assets/img/hero-fg-portrait.webp" media="(max-aspect-ratio: 1/1)">
 <script src="assets/vendor/gsap.min.js" defer></script>
+<script src="assets/vendor/lenis.min.js" defer></script>
 <style>
 /* ══ Site base ══ */
 /* SILÊNCIO hero options: shared tokens, nav, buttons, grain. Each option adds its own layout. */
@@ -162,7 +163,8 @@ img{display:block;max-width:none}
 p{text-wrap:pretty}
 h1{text-wrap:balance}
 /* never leave hero content hidden if the scripts die */
-html.js-motion [data-reveal]{animation:reveal-failsafe 0s 30s forwards}
+/* only until the hero's reveal has run: a CSS animation overrides inline styles, so left on it would undo the scroll fades */
+html.js-motion:not(.hero-revealed) [data-reveal]{animation:reveal-failsafe 0s 30s forwards}
 @keyframes reveal-failsafe{to{opacity:1}}
 
 /* ══ Hero ══ */
@@ -281,6 +283,7 @@ html.js-motion [data-reveal]{animation:reveal-failsafe 0s 30s forwards}
 .bar-copy h2{text-wrap:balance}
 .bar-copy .small{margin-top:22px;font:500 11px/1 Manrope,sans-serif;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
 
+html.lenis,html.lenis body{height:auto}   /* (no overflow:hidden when stopped: it would unstick the pinned scene) */
 html.js-motion .scene{height:900svh}            /* set exactly from the beat table in JS */
 html.js-motion .scene-pin{position:sticky;top:0;height:100svh;min-height:360px;overflow:hidden}
 html.js-motion .scene-pin>.hero{position:absolute;inset:0;min-height:0}
@@ -321,6 +324,7 @@ html.js-motion .hero .bar.glass::before{will-change:opacity}
 }
 
 /* ══ Act 2: into the bar ══ */
+.hero-fade{position:absolute;inset:0;z-index:40;pointer-events:none;opacity:0;background:linear-gradient(180deg,transparent 40%,#0B0A0D 85%)}
 .act2{position:relative;height:100svh;min-height:360px;overflow:hidden;background:#0B0A0D}
 .a2-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.7)}
 .a2-copy{position:absolute;left:0;right:0;bottom:12svh;padding:0 var(--pad);text-align:center;z-index:2}
@@ -333,7 +337,7 @@ html.js-motion .a2-copy [data-wipe]{clip-path:inset(0 100% 0 0);will-change:clip
 .a2-in{display:none}
 html.js-motion .a2-in{display:block;position:absolute;inset:0;opacity:0;background:#140F0C}
 .arch .a2-layer{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:fill;transform-origin:0 0;will-change:transform;display:block}
-.a2-turn,.a2-f1{opacity:0}
+.a2-turn,.a2-turn-rev,.a2-f1{opacity:0}
 .next-placeholder{height:100svh;background:#0B0A0D}
 @media (max-height:500px) and (orientation:landscape){
   .a2-copy h2{font-size:clamp(20px,2.6vw,30px);margin-top:8px}
@@ -465,6 +469,7 @@ html.js-motion .scene-pin .vz-logo{position:absolute}
     <a class="cell" href="#"><span class="label">Gatherings</span><em>By invitation only</em></a>
     <a class="cell ask" href="#">Request an introduction<span class="arrow" aria-hidden="true"></span></a>
   </div>
+  <i class="hero-fade" aria-hidden="true"></i>
 </section>
 
 <!-- ══ The Bar: the camera keeps tilting down the hero's own mirror floor, and the bar rises in an arch ══ -->
@@ -476,6 +481,7 @@ html.js-motion .scene-pin .vz-logo{position:absolute}
       <div class="a2-in" aria-hidden="true">
         <img class="a2-layer a2-f0" alt="" decoding="async"><img class="a2-layer a2-f1" alt="" decoding="async">
         <video class="a2-layer a2-turn" muted playsinline preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
+        <video class="a2-layer a2-turn-rev" muted playsinline preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
       </div></div></figure>
     <div class="arch-reflect" aria-hidden="true"><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/bar-arch.webp"><img src="assets/img/bar-wide.webp" alt="" loading="lazy" decoding="async"></picture></div>
   </div>
@@ -770,7 +776,7 @@ addEventListener('DOMContentLoaded', () => {
   gsap.set('.hero .fg .frame', { y: 40, opacity: 0 });
   let started = false;
   const start = () => {
-    if (started) return; started = true;
+    if (started) return; started = true; document.documentElement.classList.add('hero-revealed');
     gsap.to('.hero .bg .frame', { scale: 1, duration: 3.6, ease: 'expo.out' });
     gsap.to('.hero .fg .frame', { y: 0, opacity: 1, duration: 2.4, ease: 'expo.out', delay: 0.2 });
     document.querySelectorAll('.hero [data-reveal]').forEach(el =>
@@ -789,6 +795,33 @@ addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <script>
+/* One style writer for every scroll script: it writes a property only when its value actually changes, so a frame
+   only touches what moved (fewer style recalcs), and every script sees the same cached truth. */
+window.SilencioStyle = (() => {
+  let cache = new WeakMap();
+  const w = (el, prop, val) => {
+    if (!el) return; val = String(val);
+    let c = cache.get(el); if (!c) cache.set(el, c = {});
+    if (c[prop] === val) return; c[prop] = val; el.style[prop] = val;
+  };
+  w.reset = () => { cache = new WeakMap(); };
+  return w;
+})();
+/* Smooth scroll: wheel steps become a continuous glide, so every scroll-linked motion moves continuously instead of in
+   100px jumps. Lenis runs on the GSAP ticker (one loop, ahead of the scene), starts once the intro has handed off,
+   and stops while the card is being inspected. Touch keeps native momentum. Reduced motion: native scrolling. */
+addEventListener('DOMContentLoaded', () => {
+  if (!window.gsap || !window.Lenis || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const start = () => {
+    if (window.SilencioLenis) return;
+    const lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9, smoothWheel: true, autoRaf: false });
+    gsap.ticker.add(t => lenis.raf(t * 1000), false, true);
+    window.SilencioLenis = lenis;
+  };
+  if (!document.getElementById('sl')) start(); else document.addEventListener('silencio:intro-done', start, { once: true });
+});
+</script>
+<script>
 /* ══ Act 2: into the bar, inside the frame ══
    The lounge card keeps its frame. Scroll grows it 20% and glides it to the centre of the screen while the words leave,
    and the turn clip plays inside it at the same time, landing on the bar seen straight on (the clip's last frame).
@@ -797,6 +830,13 @@ addEventListener('DOMContentLoaded', () => {
    the 5504x3072 masters) gets  translate((R.l-V.l)/V.w*bw, (R.t-V.t)/V.h*bh) scale(R.w/V.w, R.h/V.h)  in the card's pane.
      turn    card to centre (first 40%), clip scrubbed (all of it), view eases from the card's crop to the clip's framing
      words   below the frame, from 35% of the turn until a little after the scene has released                      */
+/* ══ Act 2: into the bar, inside the frame ══
+   Scroll drives the frame (it grows 20% and glides to the centre), the words, and the hand-off. The turn clip is NOT
+   scrubbed: it plays on its own at its natural speed, in the direction you are scrolling. Scrolling down into the
+   section plays it forward; scrolling back up plays the reversed copy (bar-turn-*-rev.mp4) from the mirrored time, so
+   it rewinds just as smoothly. At either end the matching still takes over (the clip's first/last frames equal them).
+   Inside the card every layer is placed with one rule: a layer showing image-rect R under a view V (both normalised to
+   the 5504x3072 masters) gets  translate((R.l-V.l)/V.w*bw, (R.t-V.t)/V.h*bh) scale(R.w/V.w, R.h/V.h)  in the card's pane. */
 window.SilencioAct2 = (() => {
   const IW = 5504, IH = 3072;
   const R0 = { l: 0.0136, t: 0.0101, w: 0.9857 - 0.0136, h: 0.9898 - 0.0101 };              // the clip's framing of F0/F1
@@ -805,24 +845,24 @@ window.SilencioAct2 = (() => {
   const CARD_ARCH = { l: 668 / IW, t: 0, w: 1966 / IW, h: 1 };                                // bar-arch.webp's crop of F0
   const CENTRE_Y = 0.43;                                    // the frame's centre lands a little above the middle: room for the words
   const Q = s => document.querySelector(s), QA = s => [...document.querySelectorAll(s)];
-  const inner = Q('.a2-in'), f0 = Q('.a2-f0'), vid = Q('.a2-turn'), f1 = Q('.a2-f1');
-  const copy = Q('.a2-copy'), words = QA('.a2-copy [data-wipe]');
-  let K, card = {}, G = null, bw = 1, bh = 1, portrait = false, vidReady = false, scrubAt = 0;
+  const inner = Q('.a2-in'), f0 = Q('.a2-f0'), f1 = Q('.a2-f1'), vF = Q('.a2-turn'), vR = Q('.a2-turn-rev');
+  const copy = Q('.a2-copy'), words = QA('.a2-copy [data-wipe]'), heroFade = Q('.hero-fade');
+  let K, card = {}, G = null, bw = 1, bh = 1, portrait = false;
+  const w = window.SilencioStyle;                           // style writes that skip unchanged values
 
   const lerp = (a, b, t) => a + (b - a) * t;
   function cover(R, aspect) {                             // the view showing R like object-fit: cover in a box of this aspect
-    const ar = (R.w * IW) / (R.h * IH); let w, h;
-    if (aspect > ar) { w = R.w; h = w * IW / aspect / IH; } else { h = R.h; w = h * IH * aspect / IW; }
-    return { l: R.l + (R.w - w) / 2, t: R.t + (R.h - h) / 2, w, h };
+    const ar = (R.w * IW) / (R.h * IH); let ww, h;
+    if (aspect > ar) { ww = R.w; h = ww * IW / aspect / IH; } else { h = R.h; ww = h * IH * aspect / IW; }
+    return { l: R.l + (R.w - ww) / 2, t: R.t + (R.h - h) / 2, w: ww, h };
   }
   function mixView(A, Z, k) {                             // log-scale size, linear centre
-    const w = Math.exp(lerp(Math.log(A.w), Math.log(Z.w), k)), h = w * A.h / A.w;
+    const ww = Math.exp(lerp(Math.log(A.w), Math.log(Z.w), k)), h = ww * A.h / A.w;
     const cx = lerp(A.l + A.w / 2, Z.l + Z.w / 2, k), cy = lerp(A.t + A.h / 2, Z.t + Z.h / 2, k);
-    return { l: cx - w / 2, t: cy - h / 2, w, h };
+    return { l: cx - ww / 2, t: cy - h / 2, w: ww, h };
   }
-  function place(el, R, V) {
-    el.style.transform = `translate(${(R.l - V.l) / V.w * bw}px,${(R.t - V.t) / V.h * bh}px) scale(${R.w / V.w},${R.h / V.h})`;
-  }
+  const place = (el, R, V) => w(el, 'transform',
+    `translate(${((R.l - V.l) / V.w * bw).toFixed(2)}px,${((R.t - V.t) / V.h * bh).toFixed(2)}px) scale(${(R.w / V.w).toFixed(5)},${(R.h / V.h).toFixed(5)})`);
 
   function recompute() {
     portrait = matchMedia('(max-aspect-ratio: 1/1)').matches;
@@ -835,62 +875,108 @@ window.SilencioAct2 = (() => {
     const aspect = bw / bh, Rc = portrait ? CARD_ARCH : CARD_WIDE;
     const cy = vh * CENTRE_Y;
     G = { dx: vw / 2 - (r.left + r.width / 2), dy: cy - (r.top + r.height / 2), Vcard: cover(Rc, aspect), Vend: cover(R0, aspect) };
-    // the words sit under the landed frame: its picture's bottom edge, scaled 1.2 about the card's centre
-    const paneBottom = cy + (pr.bottom - (r.top + r.height / 2)) * 1.2;
+    const paneBottom = cy + (pr.bottom - (r.top + r.height / 2)) * 1.2;          // the words sit under the landed frame
     copy.style.top = Math.round(paneBottom + Math.max(22, vh * 0.04)) + 'px';
+    w.reset(); placeAll();
   }
 
+  // ── the clip: a small player that runs forward or backward on its own ──
+  const P = { D: 5.0, pos: 0, dir: 0, ready: 0, active: null, pending: null, lastT: 0 };   // pos: forward seconds, 0..D
   function preload() {
+    const hi = bw * 1.2 * Math.min(devicePixelRatio || 1, 2) > 1100 ? 1920 : 1280;
     const big = bw * 1.2 * Math.min(devicePixelRatio || 1, 2) > 1900 ? 3840 : 2048;
     f0.src = `assets/img/act2/bar-f0-${big}.webp`; f1.src = `assets/img/act2/bar-f1-${big}.webp`;
-    vid.src = `assets/video/bar-turn-${bw * 1.2 * Math.min(devicePixelRatio || 1, 2) > 1100 ? 1920 : 1280}.mp4`;
-    vid.preload = 'auto'; vid.load();
-    vid.addEventListener('loadeddata', () => {
-      // some browsers (iOS Safari) only paint seeked frames after the video has played once: play, then pause at 0
-      vid.play().then(() => { vid.pause(); vid.currentTime = 0; vidReady = true; }).catch(() => { vidReady = vid.readyState >= 2; });
-    }, { once: true });
-    addEventListener('touchstart', () => { if (!vidReady) vid.play().then(() => { vid.pause(); vidReady = true; }).catch(() => {}); }, { once: true, passive: true });
+    for (const [v, src] of [[vF, `assets/video/bar-turn-${hi}.mp4`], [vR, `assets/video/bar-turn-${hi}-rev.mp4`]]) {
+      v.src = src; v.preload = 'auto'; v.muted = true; v.load();
+      v.addEventListener('loadedmetadata', () => { P.D = v.duration || P.D; }, { once: true });
+      v.addEventListener('canplay', () => { P.ready |= v === vF ? 1 : 2; }, { once: true });
+    }
+  }
+  // show `v` from forward-time `pos`, playing; keep the old video on screen until the new one has a frame to show
+  function startVideo(v, pos) {
+    const other = v === vF ? vR : vF;
+    const t = v === vF ? pos : P.D - pos;
+    P.pending = v; other.pause();
+    const go = () => {
+      if (P.pending !== v) return;
+      v.play().then(() => {
+        const swap = () => { if (P.pending !== v) return; P.active = v; P.pending = null; w(v, 'opacity', 1); w(other, 'opacity', 0); };
+        v.requestVideoFrameCallback ? v.requestVideoFrameCallback(swap) : swap();
+      }).catch(() => { P.pending = null; });
+    };
+    if (Math.abs(v.currentTime - t) > 0.04) { v.currentTime = Math.min(Math.max(t, 0), P.D - 0.001); v.addEventListener('seeked', go, { once: true }); }
+    else go();
+  }
+  function setDir(d) {
+    if (d === P.dir) return; P.dir = d;
+    if ((P.ready & 3) !== 3) return;                        // stills crossfade until both clips can play
+    if (d > 0 && P.pos < P.D - 0.02) startVideo(vF, P.pos);
+    else if (d < 0 && P.pos > 0.02) startVideo(vR, P.pos);
+  }
+  function tickClip(dt) {
+    if ((P.ready & 3) === 3) {
+      const v = P.active;
+      if (v && !v.paused) P.pos = v === vF ? v.currentTime : P.D - v.currentTime;
+      if (P.dir > 0 && P.pos < P.D - 0.02 && (!v || v.paused) && !P.pending) startVideo(vF, P.pos);   // e.g. the clip just loaded
+      if (P.dir < 0 && P.pos > 0.02 && (!v || v.paused) && !P.pending) startVideo(vR, P.pos);
+      if (v && (v.ended || (P.dir > 0 && P.pos >= P.D - 0.02) || (P.dir < 0 && P.pos <= 0.02))) {
+        v.pause(); P.pos = P.dir > 0 ? P.D : 0;
+      }
+    } else if (P.dir) {
+      P.pos = Math.min(P.D, Math.max(0, P.pos + P.dir * dt));                  // no clip yet: a virtual clock for the stills
+    }
+    // at rest at either end, the still is the picture (identical to the clip's end frame)
+    const atEnd = P.pos >= P.D - 0.02, atStart = P.pos <= 0.02, playing = P.active && !P.active.paused;
+    const clipOn = (P.ready & 3) === 3 && (playing || P.pending || (!atEnd && !atStart));
+    w(f1, 'opacity', (P.ready & 3) === 3 ? (atEnd && !playing ? 1 : 0) : (P.pos / P.D).toFixed(3));
+    if (!clipOn) { w(vF, 'opacity', 0); w(vR, 'opacity', 0); }
   }
 
   function init(k) { K = k; card = k.cards; }
 
-  function update(x) {                                     // x: svh scrolled into Act 2 (negative = not yet)
+  // ── scroll: x = svh scrolled into Act 2 (negative = not yet) ──
+  let lastX = -1e9, acc = 0, xNow = -1e9;
+  function update(x) {
     if (!G) return;
     const { BEATS: Bt, seg, io3, out3 } = K;
-    const t = seg(x, 0, Bt.turn), mv = io3(seg(x, 0, Bt.turn * 0.4));
-    const on = x > 0;
+    xNow = x;
+    // direction follows the scroll, with a little hysteresis so a twitch doesn't flip the clip
+    const dx = lastX < -1e8 ? 0 : x - lastX; lastX = x;
+    if (x > 0 && x < Bt.turn + Bt.cross) {
+      acc = Math.sign(dx) === Math.sign(acc) ? acc + dx : dx;
+      if (P.dir <= 0 && acc > 1.2) setDir(1);
+      if (P.dir >= 0 && acc < -1.2) setDir(-1);
+    } else if (x <= 0) setDir(-1);
+    const mv = io3(seg(x, 0, Bt.turn * 0.4)), on = x > 0;
     // the frame grows 20% and glides to the centre; the old words leave; the reflection (of the old picture) fades
-    if (on) card.arch.style.translate = `${G.dx * mv}px ${G.dy * mv}px`;
-    card.arch.style.scale = on ? 1 + 0.2 * mv : '';
+    if (on) w(card.arch, 'translate', `${(G.dx * mv).toFixed(2)}px ${(G.dy * mv).toFixed(2)}px`);
+    w(card.arch, 'scale', on ? (1 + 0.2 * mv).toFixed(4) : '');
     const exit = out3(seg(x, 0, Bt.turn * 0.3));
-    card.copy.style.translate = on ? `${-exit * 80}px 0` : ''; card.copy.style.opacity = on ? 1 - exit : '';
-    card.shade.style.opacity = on ? 1 - exit * 0.6 : '';
-    card.reflect.style.opacity = on ? 0.3 * (1 - mv) : '';
-    inner.style.opacity = on ? 1 : 0;
-    // the floor's warm glow fades out at the bottom of the scene, so it releases into the next section without a seam
-    card.hero.style.webkitMaskImage = card.hero.style.maskImage = on ? `linear-gradient(180deg,#000 ${100 - 60 * mv}%,transparent ${100 - 15 * mv}%)` : '';
+    w(card.copy, 'translate', on ? `${(-exit * 80).toFixed(1)}px 0` : ''); w(card.copy, 'opacity', on ? (1 - exit).toFixed(3) : '');
+    w(card.shade, 'opacity', on ? (1 - exit * 0.6).toFixed(3) : '');
+    w(card.reflect, 'opacity', on ? (0.3 * (1 - mv)).toFixed(3) : '');
+    w(inner, 'opacity', on || P.pos > 0.02 ? 1 : 0);
+    w(heroFade, 'opacity', on ? mv.toFixed(3) : 0);     // the floor's glow fades at the bottom (an overlay: no per-frame mask repaint)
     // the new words: label, line, small line, each rising and writing in; the last finishes after the release
     const w0 = Bt.turn * 0.35, span = Bt.turn * 0.38, step = Bt.turn * 0.17;
-    copy.style.visibility = x > w0 ? 'visible' : 'hidden';
+    w(copy, 'visibility', x > w0 ? 'visible' : 'hidden');
     words.forEach((el, i) => {
-      const w = out3(seg(x, w0 + i * step, w0 + i * step + span));
-      el.style.clipPath = `inset(-0.2em ${(1 - w) * 100}% -0.3em 0)`; el.style.translate = `0 ${(1 - w) * 14}px`;
+      const k = out3(seg(x, w0 + i * step, w0 + i * step + span));
+      w(el, 'clipPath', `inset(-0.2em ${((1 - k) * 100).toFixed(2)}% -0.3em 0)`); w(el, 'translate', `0 ${((1 - k) * 14).toFixed(2)}px`);
     });
-    if (!on) return;
-
-    // the view eases from the card's own crop to the clip's framing while the clip plays
-    const V = mixView(G.Vcard, G.Vend, io3(t));
-    place(f0, FULL, V); place(f1, FULL, V); place(vid, R0, V);
-    if (vidReady && vid.duration) {
-      const want = t * (vid.duration - 0.05);
-      scrubAt = Math.abs(want - scrubAt) > 1.5 ? want : scrubAt + (want - scrubAt) * 0.18;
-      if (Math.abs(vid.currentTime - scrubAt) > 0.008) vid.currentTime = scrubAt;
-      vid.style.opacity = t < 1 ? 1 : 0;
-      f1.style.opacity = t < 1 ? 0 : 1;                    // the clip's last frame IS F1: the swap is invisible
-    } else {
-      vid.style.opacity = 0; f1.style.opacity = io3(t);    // clip not seekable (yet): crossfade the stills instead
-    }
   }
+  // the picture inside the frame follows the clip's own progress, every frame it plays
+  function placeAll() {
+    if (!G) return;
+    const V = mixView(G.Vcard, G.Vend, K.io3(P.pos / P.D));
+    place(f0, FULL, V); place(f1, FULL, V); place(vF, R0, V); place(vR, R0, V);
+  }
+  addEventListener('DOMContentLoaded', () => window.gsap && gsap.ticker.add((time, deltaMs) => {
+    if (!G || !K) return;
+    const before = P.pos;
+    tickClip(Math.min(0.05, deltaMs / 1000));
+    if (P.pos !== before || xNow > 0) placeAll();
+  }));
 
   return { init, recompute: () => { if (K) recompute(); }, update, preload };
 })();
@@ -910,7 +996,7 @@ window.SilencioVision = (() => {
   const closeBtn = Q('.vz-close'), hitBtn = Q('.vz-hit'), vlogo = Q('.vz-logo'), words = QA('.vision [data-wipe]');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let K, ctx = {}, vw = 1, vh = 1, portrait = false, logoRest = null, toLeft = 0, k = 0, active = false;
-  let st = null, loading = false, mode = 'rest';                       // rest | inspect
+  let st = null, loading = false, mode = 'rest', onScreen = false;                       // rest | inspect
   const lerp = (a, b, t) => a + (b - a) * t;
   const damp = (cur, tgt, rate, dt) => cur + (tgt - cur) * (1 - Math.exp(-rate * dt));
 
@@ -929,7 +1015,7 @@ window.SilencioVision = (() => {
   // ── the card's resting place: right half (desktop) or under the words (portrait), in world units at z = 0 ──
   function layout() {
     const { cam, renderer } = st;
-    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); renderer.setSize(vw, vh, false);
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.setSize(vw, vh, false);   // full-screen canvas: 1.5x is plenty for a card
     cam.aspect = vw / vh; cam.updateProjectionMatrix();
     const upp = 2 * Math.tan(cam.fov * Math.PI / 360) * cam.position.z / vh;           // world units per CSS px at z = 0
     const toW = (px, py) => [(px - vw / 2) * upp, (vh / 2 - py) * upp];
@@ -1060,14 +1146,14 @@ window.SilencioVision = (() => {
     mode = 'inspect'; st.hover = false;
     st.yawT = Math.round(st.yaw / (2 * Math.PI)) * 2 * Math.PI;                       // settle face-on, then it's theirs
     st.pitchT = 0;
-    document.documentElement.classList.add('vz-inspecting');
+    document.documentElement.classList.add('vz-inspecting'); window.SilencioLenis && window.SilencioLenis.stop();
     addEventListener('wheel', block, { passive: false }); addEventListener('touchmove', block, { passive: false }); addEventListener('keydown', keys);
     closeBtn.focus({ preventScroll: true });
   }
   function close() {
     if (mode !== 'inspect') return;
     mode = 'rest'; st.pitchT = 0; st.tiltX = st.tiltY = 0;
-    document.documentElement.classList.remove('vz-inspecting');
+    document.documentElement.classList.remove('vz-inspecting'); window.SilencioLenis && window.SilencioLenis.start();
     removeEventListener('wheel', block); removeEventListener('touchmove', block); removeEventListener('keydown', keys);
     hitBtn.focus({ preventScroll: true });
   }
@@ -1080,17 +1166,19 @@ window.SilencioVision = (() => {
     const { BEATS: B, seg, io3, out3 } = K;
     k = seg(x, 0, B.cross);
     const on = x > 0;
-    sec.style.visibility = on ? 'visible' : 'hidden';
-    sec.style.translate = `0 ${(1 - k) * vh}px`;
-    for (const el of ctx.lift) el.style.translate = on ? `0 ${-k * vh}px` : '';          // the bar scene scrolls away
-    // the emblem: leaves the hero's nav and glides from the top-left back to the top centre
-    const kl = io3(seg(x, B.cross, B.cross + 40));                                   // only once the card section has landed
-    ctx.logo.style.visibility = on ? 'hidden' : '';
-    vlogo.style.visibility = on ? 'visible' : 'hidden';
-    vlogo.style.translate = `${toLeft * (1 - kl)}px 0`;
+    onScreen = on && x < B.cross + B.vision + 110;
+    const w = window.SilencioStyle;
+    w(sec, 'visibility', on ? 'visible' : 'hidden');
+    w(sec, 'translate', `0 ${((1 - k) * vh).toFixed(2)}px`);
+    for (const el of ctx.lift) w(el, 'translate', on ? `0 ${(-k * vh).toFixed(2)}px` : '');   // the bar scene scrolls away
+    // the emblem: leaves the hero's nav and glides from the top-left back to the top centre, once the section has landed
+    const kl = io3(seg(x, B.cross, B.cross + 40));
+    w(ctx.logo, 'visibility', on ? 'hidden' : '');
+    w(vlogo, 'visibility', on ? 'visible' : 'hidden');
+    w(vlogo, 'translate', `${(toLeft * (1 - kl)).toFixed(2)}px 0`);
     words.forEach((el, i) => {
-      const w = out3(seg(x, B.cross * (0.55 + i * 0.16), B.cross * (0.55 + i * 0.16) + B.cross * 0.5));
-      el.style.clipPath = `inset(-0.2em ${(1 - w) * 100}% -0.3em 0)`; el.style.translate = `0 ${(1 - w) * 14}px`;
+      const q = out3(seg(x, B.cross * (0.55 + i * 0.16), B.cross * (0.55 + i * 0.16) + B.cross * 0.5));
+      w(el, 'clipPath', `inset(-0.2em ${((1 - q) * 100).toFixed(2)}% -0.3em 0)`); w(el, 'translate', `0 ${((1 - q) * 14).toFixed(2)}px`);
     });
     const nowActive = k > 0.98;
     if (nowActive !== active) { active = nowActive; sec.classList.toggle('is-live', active); if (!active) close(); }
@@ -1098,7 +1186,7 @@ window.SilencioVision = (() => {
 
   // ── one render callback on the shared ticker, only while the section is on screen ──
   addEventListener('DOMContentLoaded', () => window.gsap && gsap.ticker.add((time, deltaMs) => {
-    if (!st || !st.ready || k <= 0) return;
+    if (!st || !st.ready || !onScreen) return;                                   // off screen: no GPU work at all
     const dt = Math.min(0.05, deltaMs / 1000), ins = mode === 'inspect';
     st.inspectK = damp(st.inspectK, ins ? 1 : 0, 6, dt);
     // slow while a face is towards you, quick through the edge: angular speed rises with sin^4(yaw)
@@ -1157,7 +1245,9 @@ addEventListener('DOMContentLoaded', () => {
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const seg = (p, a, b) => clamp((p - a) / (b - a));
   const out3 = t => 1 - Math.pow(1 - t, 3), io3 = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  const fade = (el, o) => { el.style.opacity = o; el.style.visibility = o < 0.01 ? 'hidden' : ''; };
+  const w = window.SilencioStyle;
+  const fade = (el, o) => { w(el, 'opacity', o.toFixed(3)); w(el, 'visibility', o < 0.01 ? 'hidden' : ''); };
+  let lastG = '';
   const ACT1 = 320, A2_AT = 0.62 * ACT1;                                    // svh
   const BEATS = { turn: 160, cross: 70, vision: 110 };                    // svh: clip; the bar scrolls away as the vision rises; the vision holds
   const A2_LEN = Object.values(BEATS).reduce((a, b) => a + b, 0);
@@ -1180,6 +1270,7 @@ addEventListener('DOMContentLoaded', () => {
     // pan (translate is applied to `world`), so adding pan back out gives the pan-independent constant.
     const r = worldImg.getBoundingClientRect(), hb = hero.getBoundingClientRect();
     m.maxPan = Math.max(0, r.bottom + pan - hb.bottom - 2);
+    m.dirty = true;                                    // after a resize, re-run the act-1 cues once
     if (act2) act2.recompute(m.toLeft);
     if (vision) vision.recompute();
   }
@@ -1197,40 +1288,38 @@ addEventListener('DOMContentLoaded', () => {
     if (act2 && sv !== lastSv) { lastSv = sv; act2.update(sv - A2_AT); if (vision) vision.update(sv - A2_AT - BEATS.turn); }
     const p = clamp(sv / ACT1);
     if (act2 && !preloaded && p > 0.05) { preloaded = true; act2.preload(); if (vision) vision.preload(); }
-    if (p === last) return;
-    const first = last < 0; last = p;
+    if (p === last && !m.dirty) return;
+    const first = last < 0; last = p; m.dirty = false;
     if (first && p === 0) return;                     // at rest: leave the hero exactly as revealed
     const vh = m.pinVh;
 
     // cells: one after another, sinking into the floor
-    cells.forEach((c, i) => { const k = out3(seg(p, i * 0.022, 0.07 + i * 0.022)); c.style.translate = `0 ${k * 46}px`; fade(c, 1 - k); });
-    glass.style.setProperty('--g', 1 - seg(p, 0.03, 0.12));
-    // motto: the letters open and dissolve upwards (a light blur, not a heavy one: cheap on Safari's compositor)
+    cells.forEach((c, i) => { const k = out3(seg(p, i * 0.022, 0.07 + i * 0.022)); w(c, 'translate', `0 ${(k * 46).toFixed(2)}px`); fade(c, 1 - k); });
+    const g = (1 - seg(p, 0.03, 0.12)).toFixed(3); if (g !== lastG) { lastG = g; glass.style.setProperty('--g', g); }
+    // motto: opens and dissolves upwards (scale, not letter-spacing: no text re-layout per frame)
     const mo = out3(seg(p, 0.05, 0.14));
-    motto.style.translate = `-50% ${-mo * 26}px`; motto.style.letterSpacing = `${0.02 + mo * 0.26}em`;
-    motto.style.opacity = 1 - mo; motto.style.filter = mo > 0.02 ? `blur(${(mo * 3).toFixed(2)}px)` : 'none';
+    w(motto, 'translate', `-50% ${(-mo * 26).toFixed(2)}px`); w(motto, 'scale', `${(1 + mo * 0.14).toFixed(4)} 1`); w(motto, 'opacity', (1 - mo).toFixed(3));
     // nav links rise away one by one; the menu button with the first
-    links.forEach((a, i) => { const k = out3(seg(p, 0.06 + i * 0.014, 0.13 + i * 0.014)); a.style.translate = `0 ${-k * 22}px`; fade(a, 1 - k); });
-    if (menuBtn) { const k = out3(seg(p, 0.06, 0.13)); menuBtn.style.translate = `0 ${-k * 22}px`; fade(menuBtn, 1 - k); }
+    links.forEach((a, i) => { const k = out3(seg(p, 0.06 + i * 0.014, 0.13 + i * 0.014)); w(a, 'translate', `0 ${(-k * 22).toFixed(2)}px`); fade(a, 1 - k); });
+    if (menuBtn) { const k = out3(seg(p, 0.06, 0.13)); w(menuBtn, 'translate', `0 ${(-k * 22).toFixed(2)}px`); fade(menuBtn, 1 - k); }
     // the figure lifts, recedes and fades
     const f = io3(seg(p, 0.08, 0.22));
-    fg.style.translate = `0 ${-f * vh * 0.2}px`; fg.style.scale = 1 - f * 0.05; fade(fg, 1 - f);
+    w(fg, 'translate', `0 ${(-f * vh * 0.2).toFixed(2)}px`); w(fg, 'scale', (1 - f * 0.05).toFixed(4)); fade(fg, 1 - f);
     // the invitation slides right
     const c = out3(seg(p, 0.10, 0.17));
-    cta.style.translate = `${c * 28}px 0`; fade(cta, 1 - c);
+    w(cta, 'translate', `${(c * 28).toFixed(2)}px 0`); fade(cta, 1 - c);
     // the logo travels to the top-left corner (to the nav's left padding) and stays
     const l = io3(seg(p, 0.12, 0.26));
-    logo.style.translate = `${l * m.toLeft}px 0`;
+    w(logo, 'translate', `${(l * m.toLeft).toFixed(2)}px 0`);
     // the camera tilts down the world image, as far as its floor reaches
     pan = io3(seg(p, 0.05, 0.43)) * m.maxPan;   // same cue as the motto
-    world.style.translate = `0 ${-pan}px`;
-    // the bar image rises, the words arrive, then a slow push in
+    w(world, 'translate', `0 ${(-pan).toFixed(2)}px`);
+    // the bar image rises, the words arrive; from A2_AT on, Act 2 owns the card and the shade
     const a = io3(seg(p, 0.165, 0.365));
-    shade.style.opacity = seg(p, 0.14, 0.32);
-    if (sv < A2_AT) arch.style.translate = `0 ${(1 - a) * vh * 0.55}px`;   // from A2_AT on, Act 2 moves the card
-    arch.style.opacity = clamp(a * 1.6);
-    photo.style.scale = 1.2 - 0.2 * a;            // settles to exactly 1, so Act 2 can take over from the card pixel-for-pixel
-    words.forEach((el, i) => { const w = out3(seg(p, 0.28 + i * 0.07, 0.44 + i * 0.07)); el.style.clipPath = `inset(0 ${(1 - w) * 100}% 0 0)`; });
+    if (sv < A2_AT) { w(shade, 'opacity', seg(p, 0.14, 0.32).toFixed(3)); w(arch, 'translate', `0 ${((1 - a) * vh * 0.55).toFixed(2)}px`); }
+    w(arch, 'opacity', clamp(a * 1.6).toFixed(3));
+    w(photo, 'scale', (1.2 - 0.2 * a).toFixed(4));            // settles to exactly 1, so Act 2 can take over from the card pixel-for-pixel
+    words.forEach((el, i) => { const k = out3(seg(p, 0.28 + i * 0.07, 0.44 + i * 0.07)); w(el, 'clipPath', `inset(0 ${((1 - k) * 100).toFixed(2)}% 0 0)`); });
   });
 });
 </script>
