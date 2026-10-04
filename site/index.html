@@ -870,7 +870,7 @@ addEventListener('DOMContentLoaded', () => {
   const out3 = t => 1 - Math.pow(1 - t, 3), io3 = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   const fade = (el, o) => { el.style.opacity = o; el.style.visibility = o < 0.01 ? 'hidden' : ''; };
   const ACT1 = 320, A2_AT = 0.62 * ACT1;                                    // svh
-  const BEATS = { turn: 130, hold: 14 };                                  // svh: the clip runs over 130; the pin lets go 14 later
+  const BEATS = { turn: 160, hold: 14 };                                  // svh: the clip runs over 160; the pin lets go 14 later
   const A2_LEN = Object.values(BEATS).reduce((a, b) => a + b, 0);
   scene.style.height = (100 + A2_AT + A2_LEN) + 'svh';
   const act2 = window.SilencioAct2;
