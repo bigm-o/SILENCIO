@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const app = express();
+app.use(require('compression')());   // gzip text (html, js, json, wasm); images and video are already compressed and pass through
 
 app.get('/_debug', (req, res) => {
   const siteAssets = path.join(__dirname, 'site', 'assets');

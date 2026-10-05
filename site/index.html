@@ -15,7 +15,9 @@
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="noindex, nofollow">
-<script>document.documentElement.classList.add('sl-lock');matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.classList.add('js-motion')</script>
+<script>document.documentElement.classList.add('sl-lock');matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.classList.add('js-motion')
+/* weak connection (Save-Data, 2G/3G): no intro videos, no 3D card, no turn clip. Only Chromium reports this; elsewhere each heavy piece guards itself. */
+window.SilencioLite=(function(c){return!!(c&&(c.saveData||/2g|3g/.test(c.effectiveType||'')))})(navigator.connection)</script>
 <style>
 /* ── SILÊNCIO intro: critical CSS (keep inline) ── */
 /* the loader and the hero share this background, so the hand-off reveals no seam */
@@ -419,6 +421,7 @@ html.js-motion .scene-pin .vz-logo{position:absolute}
   addEventListener('load', function () { if (!r.slStarted && r.isConnected) { r.slUnblock(); r.remove(); de.classList.remove('sl-lock', 'js-motion'); document.dispatchEvent(new CustomEvent('silencio:intro-done')); } });
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { r.dataset.mode = 'reduced'; return; }
+  if (window.SilencioLite) { r.dataset.mode = 'still'; return; }   // weak connection: the still emblem and the wordmark wipe, nothing downloaded
   // Safari (and every iOS browser, all WebKit) gets HEVC-alpha .mov; everyone else VP9-alpha .webm.
   // Never <source> order: Safari plays WebM without alpha, Chrome plays HEVC without alpha.
   var ua = navigator.userAgent;
@@ -477,13 +480,13 @@ html.js-motion .scene-pin .vz-logo{position:absolute}
   <div class="floor" aria-hidden="true"><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/hero-world-portrait.webp"><img src="assets/img/hero-world.webp" alt="" loading="lazy" decoding="async"></picture></div>
   <i class="bar-shade" aria-hidden="true"></i>
   <div class="arch-wrap">
-    <figure class="arch"><div class="pane"><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/bar-arch.webp"><img src="assets/img/bar-wide.webp" alt="The lounge at SILÊNCIO: bottles lit beneath three gold arches, crystal chandeliers, velvet seating" loading="lazy" decoding="async"></picture>
+    <figure class="arch"><div class="pane"><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/bar-arch.webp"><img src="assets/img/bar-wide-2400.webp" srcset="assets/img/bar-wide-1600.webp 1600w, assets/img/bar-wide-2400.webp 2400w, assets/img/bar-wide.webp 4238w" sizes="(max-height: 500px) and (orientation: landscape) 50vw, 81vw" alt="The lounge at SILÊNCIO: bottles lit beneath three gold arches, crystal chandeliers, velvet seating" loading="lazy" decoding="async"></picture>
       <div class="a2-in" aria-hidden="true">
         <img class="a2-layer a2-f0" alt="" decoding="async"><img class="a2-layer a2-f1" alt="" decoding="async">
         <video class="a2-layer a2-turn" muted playsinline preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
         <video class="a2-layer a2-turn-rev" muted playsinline preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
       </div></div></figure>
-    <div class="arch-reflect" aria-hidden="true"><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/bar-arch.webp"><img src="assets/img/bar-wide.webp" alt="" loading="lazy" decoding="async"></picture></div>
+    <div class="arch-reflect" aria-hidden="true"><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/bar-arch.webp"><img src="assets/img/bar-wide-2400.webp" srcset="assets/img/bar-wide-1600.webp 1600w, assets/img/bar-wide-2400.webp 2400w, assets/img/bar-wide.webp 4238w" sizes="(max-height: 500px) and (orientation: landscape) 50vw, 81vw" alt="" loading="lazy" decoding="async"></picture></div>
   </div>
   <div class="bar-copy">
     <p class="label" data-wipe>The lounge</p>
@@ -891,35 +894,44 @@ window.SilencioAct2 = (() => {
   }
 
   // ── the clip: a small player that runs forward or backward on its own ──
-  // The video is a bonus, never a dependency. It is only used on a desktop/laptop (fine pointer, wide screen) on a good
-  // connection, and only if both clips have fully buffered by the time the section is reached. Otherwise — phones,
-  // tablets, Save-Data, slow networks, a stall or an error — the frame keeps its still pictures: the lounge dissolves
-  // into the bar view as the frame glides to the centre, driven by the scroll. Phones never download the video at all.
+  // The video is a bonus, never a dependency. It is only used on a large screen with a fine pointer (desktop/laptop),
+  // on a strong connection, and only once both clips have downloaded whole (a local copy never stalls and seeks instantly).
+  // In every other case (phones, tablets, small windows, weak or slow networks, a download that misses its deadline,
+  // a stall, an error) the frame simply keeps the lounge picture it already shows: nothing changes inside it, and the
+  // clips and the bar stills are never downloaded.
   const RATE = 1.65;                                      // natural speed x1.65
-  const NET = navigator.connection;
-  const CAN_VIDEO = matchMedia('(hover: hover) and (pointer: fine)').matches && innerWidth >= 1024 &&
-    !(NET && (NET.saveData || /2g|3g/.test(NET.effectiveType || '')));   // (connection.downlink is a rough early guess: buffering decides)
+  const CAN_VIDEO = matchMedia('(hover: hover) and (pointer: fine)').matches && innerWidth >= 1024 && innerHeight >= 600 &&
+    !window.SilencioLite;
+  // the real test of the line: both clips (~8-17 MB) must arrive within this, i.e. a steady ~7 Mbps or better.
+  // (connection.downlink is not used: Chrome's early estimate reads low even on fast lines)
+  const DEADLINE = 20000;
   const P = { D: 5.04, pos: 0, dir: 0, ready: 0, failed: false, mode: 'still', active: null, pending: null, stallT: 0, f0: 0, f1: 0 };
-  const videoOK = () => CAN_VIDEO && !P.failed && (P.ready & 3) === 3;
+  const videoOK = () => CAN_VIDEO && !P.failed && (P.ready & 3) === 3 && P.f0 && P.f1;
   function fail() {
     if (P.failed) return; P.failed = true; P.mode = 'still'; P.active = P.pending = null;
     for (const v of [vF, vR]) { v.pause(); w(v, 'opacity', 0); }
   }
   function preload() {
+    if (!CAN_VIDEO) return;
     const big = bw * 1.2 * Math.min(devicePixelRatio || 1, 2) > 1900 ? 3840 : 2048;
     f0.src = `assets/img/act2/bar-f0-${big}.webp`; f1.src = `assets/img/act2/bar-f1-${big}.webp`;
     // a still is only ever shown once fully downloaded and decoded (never half-drawn on a slow line)
-    f0.decode().then(() => { P.f0 = 1; }).catch(() => {}); f1.decode().then(() => { P.f1 = 1; }).catch(() => {});
-    if (!CAN_VIDEO) return;
+    f0.decode().then(() => { P.f0 = 1; }).catch(fail); f1.decode().then(() => { P.f1 = 1; }).catch(fail);
     const hi = bw * 1.2 * Math.min(devicePixelRatio || 1, 2) > 1100 ? 1920 : 1280;
-    for (const [v, src] of [[vF, `assets/video/bar-turn-${hi}.mp4`], [vR, `assets/video/bar-turn-${hi}-rev.mp4`]]) {
-      v.src = src; v.preload = 'auto'; v.muted = true; v.defaultPlaybackRate = v.playbackRate = RATE; v.load();
-      v.addEventListener('loadedmetadata', () => { P.D = v.duration || P.D; }, { once: true });
-      v.addEventListener('canplaythrough', () => { P.ready |= v === vF ? 1 : 2; }, { once: true });   // fully buffered
-      v.addEventListener('error', fail);
-      v.addEventListener('waiting', () => { if (P.active === v) P.stallT = performance.now(); });
-      v.addEventListener('playing', () => { P.stallT = 0; });
-    }
+    const ac = new AbortController(), timer = setTimeout(() => ac.abort(), DEADLINE);
+    const get = src => fetch(src, { signal: ac.signal }).then(r => r.ok ? r.blob() : Promise.reject(r.status));
+    Promise.all([get(`assets/video/bar-turn-${hi}.mp4`), get(`assets/video/bar-turn-${hi}-rev.mp4`)]).then(blobs => {
+      clearTimeout(timer);
+      [vF, vR].forEach((v, i) => attach(v, URL.createObjectURL(blobs[i])));
+    }).catch(fail);                                       // too slow (aborted) or failed: the still frame, for the rest of the visit
+  }
+  function attach(v, src) {
+    v.src = src; v.preload = 'auto'; v.muted = true; v.defaultPlaybackRate = v.playbackRate = RATE; v.load();
+    v.addEventListener('loadedmetadata', () => { P.D = v.duration || P.D; }, { once: true });
+    v.addEventListener('canplaythrough', () => { P.ready |= v === vF ? 1 : 2; }, { once: true });
+    v.addEventListener('error', fail);
+    v.addEventListener('waiting', () => { if (P.active === v) P.stallT = performance.now(); });
+    v.addEventListener('playing', () => { P.stallT = 0; });
   }
   // show `v` from forward-time `pos`, playing; keep the old video on screen until the new one has a frame to show
   function startVideo(v, pos) {
@@ -959,8 +971,7 @@ window.SilencioAct2 = (() => {
       w(f1, 'opacity', atEnd && !playing && P.f1 ? 1 : 0);
       if (!(playing || P.pending || (!atEnd && !atStart)) && (P.f1 || !atEnd)) { w(vF, 'opacity', 0); w(vR, 'opacity', 0); }
     } else {
-      w(vF, 'opacity', 0); w(vR, 'opacity', 0);
-      w(f1, 'opacity', P.f1 ? (P.pos / P.D).toFixed(3) : 0);   // still pass: the bar view dissolves in over the lounge, with the scroll
+      P.pos = 0; w(vF, 'opacity', 0); w(vR, 'opacity', 0); w(f1, 'opacity', 0);   // still: the lounge picture, unchanged
     }
   }
 
@@ -984,8 +995,6 @@ window.SilencioAct2 = (() => {
     } else if (x <= T0) setDir(-1);
     const L = window.SilencioLenis;
     if (L) { const slow = P.mode === 'video' && x > T0 - 6 && x < Bt.turn * 0.85; L.options.wheelMultiplier = slow ? 0.45 : 0.9; }
-    // a still pass: the picture follows the scroll (the lounge dissolves into the bar view as the frame lands)
-    if (P.mode !== 'video') P.pos = P.D * io3(seg(x, T0, Bt.turn * 0.4));
     const mv = io3(seg(x, 0, Bt.turn * 0.4)), on = x > 0;
     // the frame grows 20% and glides to the centre; the old words leave; the reflection (of the old picture) fades
     if (on) w(card.arch, 'translate', `${(G.dx * mv).toFixed(2)}px ${(G.dy * mv).toFixed(2)}px`);
@@ -994,7 +1003,7 @@ window.SilencioAct2 = (() => {
     w(card.copy, 'translate', on ? `${(-exit * 80).toFixed(1)}px 0` : ''); w(card.copy, 'opacity', on ? (1 - exit).toFixed(3) : '');
     w(card.shade, 'opacity', on ? (1 - exit * 0.6).toFixed(3) : '');
     w(card.reflect, 'opacity', on ? (0.3 * (1 - mv)).toFixed(3) : '');
-    w(inner, 'opacity', P.f0 && (x > K.TRIG || P.pos > 0.02) ? 1 : 0);
+    w(inner, 'opacity', P.mode === 'video' && (x > K.TRIG || P.pos > 0.02) ? 1 : 0);   // still: the card's own picture shows through
     w(heroFade, 'opacity', on ? mv.toFixed(3) : 0);     // the floor's glow fades at the bottom (an overlay: no per-frame mask repaint)
     // the new words: label, line, small line, each rising and writing in; the last finishes after the release
     const w0 = Bt.turn * 0.35, span = Bt.turn * 0.38, step = Bt.turn * 0.17;
@@ -1070,7 +1079,7 @@ window.SilencioVision = (() => {
   }
 
   function preload() {
-    if (loading || reduce) return; loading = true;
+    if (loading || reduce || window.SilencioLite) return; loading = true;                   // weak connection: the still card stays
     const test = document.createElement('canvas');
     if (!(test.getContext('webgl2') || test.getContext('webgl'))) return;           // the still card stays
     import('./assets/vendor/three/three-bar.min.js').then(T => {
