@@ -348,11 +348,11 @@ html.js-motion .a2-in{display:block;position:absolute;inset:0;opacity:0;backgrou
 
 /* ══ Act 3: the vision ══ */
 .vision{position:relative;height:100svh;min-height:520px;overflow:hidden;color:var(--ink);
-  background:radial-gradient(ellipse 26% 60% at 71% 8%,rgba(255,212,160,.10),transparent 72%),
-             linear-gradient(180deg,#0B0B0D 0%,#0B0B0D 60%,#121115 76%,#0A0A0C 100%)}
-.vz-copy{position:absolute;z-index:1;left:calc(var(--pad) + 2vw);top:50%;transform:translateY(-50%);max-width:min(520px,40vw)}
-.vz-copy h2{margin-top:24px;font:400 clamp(32px,3.3vw,54px)/1.16 Prata,serif;color:#EDEBEF;text-wrap:balance}
-.vz-body{margin-top:24px;color:var(--muted);font-size:clamp(15px,1.1vw,17px);line-height:1.7;max-width:40ch}
+  background:linear-gradient(180deg,#0B0B0D 0%,#0B0B0D 60%,#121115 76%,#0A0A0C 100%)}
+.vz-copy{position:absolute;z-index:1;left:calc(var(--pad) + 2vw);top:50%;transform:translateY(-50%);max-width:min(560px,44vw)}
+.vz-copy h2{margin-top:22px;font:400 clamp(28px,2.7vw,46px)/1.16 Prata,serif;color:#EDEBEF;text-wrap:balance}
+.vz-body{margin-top:22px;color:var(--muted);font-size:clamp(14px,1vw,16px);line-height:1.65;max-width:52ch}
+.vz-body p+p{margin-top:.85em}
 .vz-still{position:absolute;left:55%;top:30%;width:34vw;height:auto;z-index:1}
 .vz-blur{position:absolute;inset:0;z-index:2;opacity:0;pointer-events:none;background:rgba(9,9,11,.55);
   backdrop-filter:blur(16px) saturate(110%);-webkit-backdrop-filter:blur(16px) saturate(110%);transition:opacity .8s var(--ease)}
@@ -370,23 +370,37 @@ html.js-motion .a2-in{display:block;position:absolute;inset:0;opacity:0;backgrou
 html.vz-inspecting .vz-blur{opacity:1}
 html.vz-inspecting .vz-ui{opacity:1}
 html.vz-inspecting .vz-ui button{pointer-events:auto}
-html.js-motion .vision{position:absolute;inset:0;z-index:8;visibility:hidden;min-height:0;will-change:translate}
+html.js-motion .vision{position:absolute;inset:0;z-index:8;visibility:hidden;min-height:0;will-change:translate;overflow:visible}
+/* the seam with the bar scene: a long feather above the section's top edge, so the bar dissolves into it as it rises */
+html.js-motion .vision::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:40svh;pointer-events:none;
+  background:linear-gradient(180deg,rgba(11,11,13,0),rgba(11,11,13,.55) 55%,#0B0B0D)}
 html.js-motion .vz-gl{display:block;pointer-events:none}
 html.js-motion .vision.is-live .vz-gl{pointer-events:auto}
 html.js-motion .vision [data-wipe]{clip-path:inset(0 100% 0 0);will-change:clip-path,translate}
 html.js-motion .vz-logo{display:block;position:fixed;z-index:20;visibility:hidden;pointer-events:none}
 html.js-motion .scene-pin .vz-logo{position:absolute}
 @media (max-aspect-ratio:1/1){
-  .vision{background:radial-gradient(ellipse 60% 40% at 50% 46%,rgba(255,212,160,.09),transparent 72%),linear-gradient(180deg,#0B0B0D 0%,#0B0B0D 72%,#121115 86%,#0A0A0C 100%)}
-  .vz-copy{left:var(--pad);right:var(--pad);top:14svh;transform:none;max-width:none;text-align:center}
-  .vz-copy h2{font-size:clamp(26px,7vw,40px)}
+  .vision{background:linear-gradient(180deg,#0B0B0D 0%,#0B0B0D 72%,#121115 86%,#0A0A0C 100%)}
+  .vz-copy{left:var(--pad);right:var(--pad);top:max(11svh,76px);transform:none;max-width:none;text-align:center}
+  .vz-copy h2{font-size:clamp(23px,6.2vw,38px);margin-top:16px}
+  .vz-body{font-size:clamp(13.5px,3.6vw,16px);line-height:1.6;margin-top:16px}
   .vz-body{margin-left:auto;margin-right:auto}
   .vz-still{left:13%;top:56%;width:74vw}
 }
 @media (max-height:500px) and (orientation:landscape){
-  .vz-copy h2{font-size:clamp(22px,2.6vw,32px);margin-top:12px}
-  .vz-body{font-size:13px;margin-top:12px}
+  .vz-copy{max-width:45vw}
+  .vz-copy h2{font-size:clamp(18px,2.4vw,26px);margin-top:10px}
+  .vz-body{font-size:12px;line-height:1.5;margin-top:10px;max-width:none}
 }
+/* ══ Act 4: the emblem ══ */
+.emb4{position:relative;height:100svh;min-height:360px;display:grid;place-items:center;background:#0B0B0D}
+.emb4-e{position:relative;width:min(84vw,90svh);aspect-ratio:1}
+.emb4-e>*{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.emb4-e video{opacity:0}
+.emb4-e.is-playing video{opacity:1}
+.emb4-e.is-playing img{visibility:hidden}
+html.js-motion .emb4{position:absolute;inset:0;z-index:9;display:block;min-height:0;background:none;pointer-events:none;visibility:hidden}
+html.js-motion .emb4-e{position:absolute;left:50%;top:50%;width:auto;will-change:transform}   /* size set in JS */
 </style>
 </head>
 <body>
@@ -420,8 +434,6 @@ html.js-motion .scene-pin .vz-logo{position:absolute}
   // If the intro script never starts, hand the page back.
   addEventListener('load', function () { if (!r.slStarted && r.isConnected) { r.slUnblock(); r.remove(); de.classList.remove('sl-lock', 'js-motion'); document.dispatchEvent(new CustomEvent('silencio:intro-done')); } });
 
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { r.dataset.mode = 'reduced'; return; }
-  if (window.SilencioLite) { r.dataset.mode = 'still'; return; }   // weak connection: the still emblem and the wordmark wipe, nothing downloaded
   // Safari (and every iOS browser, all WebKit) gets HEVC-alpha .mov; everyone else VP9-alpha .webm.
   // Never <source> order: Safari plays WebM without alpha, Chrome plays HEVC without alpha.
   var ua = navigator.userAgent;
@@ -429,7 +441,11 @@ html.js-motion .scene-pin .vz-logo{position:absolute}
   var safari = ios || (/Safari\//.test(ua) && !/Chrom(e|ium)|CriOS|Edg|OPR|Firefox|FxiOS|Android/.test(ua));
   var ext = safari ? 'mov' : 'webm';
   var probe = document.createElement('video');
-  if (!probe.canPlayType(safari ? 'video/mp4; codecs="hvc1"' : 'video/webm; codecs="vp9"')) { r.dataset.mode = 'still'; return; }
+  var alpha = !!probe.canPlayType(safari ? 'video/mp4; codecs="hvc1"' : 'video/webm; codecs="vp9"');
+  window.SilencioAlphaExt = alpha && !window.SilencioLite ? ext : null;   // the emblem loop (act 4) uses the same pick
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { r.dataset.mode = 'reduced'; return; }
+  if (window.SilencioLite) { r.dataset.mode = 'still'; return; }   // weak connection: the still emblem and the wordmark wipe, nothing downloaded
+  if (!alpha) { r.dataset.mode = 'still'; return; }
   // Encode picked once, here, by breakpoint + DPR (capped at 2). Table sizes at DPR ≥ 1.5, the smallest covering size below that.
   var bp = getComputedStyle(r).getPropertyValue('--bp').trim() || 'lg', dpr = Math.min(window.devicePixelRatio || 1, 2);
   var SIZES = { lg: [[576, 864], [1000, 1200, 1600]], md: [[576, 864], [1000, 1200]], sm: [[576], [1000]] }[bp];
@@ -509,7 +525,11 @@ html.js-motion .scene-pin .vz-logo{position:absolute}
   <div class="vz-copy">
     <p class="label" data-wipe>Our vision</p>
     <h2 id="vz-title" data-wipe>The benchmark for luxury, influence and belonging.</h2>
-    <p class="vz-body" data-wipe>To become the most influential private membership community in Africa, from Lagos to Abuja to South Africa, by 2030.</p>
+    <div class="vz-body">
+      <p data-wipe>To unite a carefully curated circle of successful individuals within an exclusive community built on influence, trust, opportunity, and shared success.</p>
+      <p data-wipe>SILÊNCIO will become the benchmark for luxury lifestyle, elite networking, and exceptional experiences, bringing together accomplished leaders, entrepreneurs, innovators, and tastemakers in an environment designed to foster meaningful connections and lasting value.</p>
+      <p data-wipe>By 2030, through strategic expansion across Lagos, Abuja, and South Africa, SILÊNCIO aims to establish the most influential private membership community in Africa.</p>
+    </div>
   </div>
   <img class="vz-still" src="assets/img/card-front.webp" alt="The SILÊNCIO membership card: black metal, the emblem and wordmark in raised chrome" loading="lazy" decoding="async">
   <i class="vz-blur" aria-hidden="true"></i>
@@ -521,6 +541,11 @@ html.js-motion .scene-pin .vz-logo{position:absolute}
   </div>
 </section>
 <img class="vz-logo" src="assets/img/emblem.webp" alt="" aria-hidden="true">
+<!-- ══ Act 4: the card and words leave; the emblem comes down to the centre, grows, and keeps turning ══ -->
+<section class="emb4" aria-label="The SILÊNCIO emblem">
+  <div class="emb4-e"><img src="assets/media/emblem_poster_1200.webp" alt="The SILÊNCIO emblem in polished chrome" decoding="async">
+    <video muted playsinline loop preload="none" aria-hidden="true" tabindex="-1" disablepictureinpicture disableremoteplayback></video></div>
+</section>
 </div>
 </div>
 <!-- next section: to be designed. A quiet placeholder so the scene can release into it. -->
@@ -1041,8 +1066,10 @@ window.SilencioAct2 = (() => {
 window.SilencioVision = (() => {
   const Q = s => document.querySelector(s), QA = s => [...document.querySelectorAll(s)];
   const sec = Q('.vision'), canvas = Q('.vz-gl'), still = Q('.vz-still'), blur = Q('.vz-blur'), ui = Q('.vz-ui');
-  const closeBtn = Q('.vz-close'), hitBtn = Q('.vz-hit'), vlogo = Q('.vz-logo'), words = QA('.vision [data-wipe]');
+  const closeBtn = Q('.vz-close'), hitBtn = Q('.vz-hit'), vlogo = Q('.vz-logo'), words = QA('.vision [data-wipe]'), copyEl = Q('.vz-copy');
+  const embSec = Q('.emb4'), embEl = Q('.emb4-e'), embImg = Q('.emb4-e img'), embVid = Q('.emb4-e video');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const emb = { F: 1, s0: 1, dx0: 0, dy0: 0 };
   let K, ctx = {}, vw = 1, vh = 1, portrait = false, logoRest = null, toLeft = 0, k = 0, active = false;
   let st = null, loading = false, mode = 'rest', onScreen = false;                       // rest | inspect
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -1056,26 +1083,37 @@ window.SilencioVision = (() => {
     logoRest = { l: r.left, t: r.top, w: r.width };
     vlogo.style.width = vlogo.style.height = r.width + 'px'; vlogo.style.left = r.left + 'px'; vlogo.style.top = r.top + 'px';
     toLeft = parseFloat(getComputedStyle(ctx.nav).paddingLeft) - ctx.logo.offsetLeft;
-    if (st) layout();
+    // act 4: the big emblem's frame (its ink is 66.2% of the frame, the nav emblem's 98.3% of its box), centred in the pin;
+    // it starts exactly over the nav emblem at the top centre (scale s0, offset dx0/dy0) and grows into place
+    const ink = Math.min(vw * 0.78, vh * 0.6);
+    emb.F = ink / 0.662; emb.s0 = r.width * 0.983 / ink;
+    emb.dx0 = r.left + r.width / 2 - vw / 2; emb.dy0 = r.top + r.height / 2 - vh / 2;
+    Object.assign(embEl.style, { width: emb.F + 'px', height: emb.F + 'px', marginLeft: -emb.F / 2 + 'px', marginTop: -emb.F / 2 + 'px' });
+    layout();
   }
 
-  // ── the card's resting place: right half (desktop) or under the words (portrait), in world units at z = 0 ──
+  // ── the card's resting place: right half (desktop) or in the room left under the words (portrait) ──
   function layout() {
+    const a = st ? st.cardH / st.cardW : 0.65;                                        // height / width
+    let cx = vw * 0.71, cy = vh * 0.52, restW = Math.min(vw * 0.34, vh * 0.62);
+    if (portrait) {
+      const top = window.SilencioRest(copyEl).bottom + 24, bottom = vh - Math.max(48, vh * 0.08);   // room for the reflection
+      restW = Math.max(130, Math.min(vw * 0.74, vh * 0.42, (bottom - top) / a));
+      cx = vw / 2; cy = Math.max(top + restW * a / 2, (top + bottom) / 2);
+    }
+    still.style.width = restW + 'px'; still.style.left = cx - restW / 2 + 'px'; still.style.top = cy - restW * a / 2 + 'px';
+    if (!st) return;
     const { cam, renderer } = st;
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.setSize(vw, vh, false);   // full-screen canvas: 1.5x is plenty for a card
     cam.aspect = vw / vh; cam.updateProjectionMatrix();
     const upp = 2 * Math.tan(cam.fov * Math.PI / 360) * cam.position.z / vh;           // world units per CSS px at z = 0
     const toW = (px, py) => [(px - vw / 2) * upp, (vh / 2 - py) * upp];
-    const restW = portrait ? Math.min(vw * 0.74, vh * 0.42) : Math.min(vw * 0.34, vh * 0.62);
-    const [rx, ry] = portrait ? toW(vw / 2, vh * 0.72) : toW(vw * 0.71, vh * 0.52);
+    const [rx, ry] = toW(cx, cy);
     const inspW = portrait ? vw * 0.86 : Math.min(vw * 0.5, vh * 0.95);
     st.rest = { x: rx, y: ry, s: restW * upp / st.cardW };
     st.insp = { x: 0, y: portrait ? 0.02 * vh * upp : 0, s: inspW * upp / st.cardW };
     st.floorY = ry - st.cardH * st.rest.s / 2;
     st.upp = upp;
-    still.style.width = restW + 'px';
-    still.style.left = (portrait ? vw / 2 : vw * 0.71) - restW / 2 + 'px';
-    still.style.top = (portrait ? vh * 0.72 : vh * 0.52) - restW * st.cardH / st.cardW / 2 + 'px';
   }
 
   function preload() {
@@ -1213,22 +1251,67 @@ window.SilencioVision = (() => {
     const { BEATS: B, seg, io3, out3 } = K;
     k = seg(x, 0, B.cross);
     const on = x > 0;
-    onScreen = on && x < B.cross + B.vision + 110;
+    const x4 = x - B.cross - B.vision, o = io3(seg(x4, 0, B.out));                  // act 4: the card and words leave, the emblem comes down
+    onScreen = on && o < 1;
     const w = window.SilencioStyle;
+    if (on && !embVid.src && ALPHA) { embVid.src = `assets/media/emblem_loop_${emb.F * Math.min(devicePixelRatio || 1, 2) > 760 ? 1200 : 720}.${ALPHA}`; embVid.load(); }
     w(sec, 'visibility', on ? 'visible' : 'hidden');
     w(sec, 'translate', `0 ${((1 - k) * vh).toFixed(2)}px`);
     for (const el of ctx.lift) w(el, 'translate', on ? `0 ${(-k * vh).toFixed(2)}px` : '');   // the bar scene scrolls away
     // the emblem: leaves the hero's nav and glides from the top-left back to the top centre, once the section has landed
     const kl = io3(seg(x, B.cross, B.cross + 40));
     w(ctx.logo, 'visibility', on ? 'hidden' : '');
-    w(vlogo, 'visibility', on ? 'visible' : 'hidden');
+    w(vlogo, 'visibility', on && x4 <= 0 ? 'visible' : 'hidden');
     w(vlogo, 'translate', `${(toLeft * (1 - kl)).toFixed(2)}px 0`);
     words.forEach((el, i) => {
-      const q = out3(seg(x, B.cross * (0.55 + i * 0.16), B.cross * (0.55 + i * 0.16) + B.cross * 0.5));
+      const q = out3(seg(x, B.cross * (0.55 + i * 0.12), B.cross * (0.55 + i * 0.12) + B.cross * 0.5));
       w(el, 'clipPath', `inset(-0.2em ${((1 - q) * 100).toFixed(2)}% -0.3em 0)`); w(el, 'translate', `0 ${((1 - q) * 14).toFixed(2)}px`);
     });
-    const nowActive = k > 0.98;
+    // act 4: the words slide off to the left (up, in portrait), the card to the right (down); the emblem, from where it sits
+    // at the top centre, comes down to the centre of the screen and grows (log-scale, so the growth reads even), then turns
+    const off = x4 > 0 ? o : 0;
+    w(copyEl, 'translate', off ? (portrait ? `0 ${(-off * vh * 0.9).toFixed(2)}px` : `${(-off * vw * 0.62).toFixed(2)}px 0`) : '');
+    w(copyEl, 'opacity', off ? (1 - off).toFixed(3) : '');
+    for (const el of [canvas, still]) {
+      w(el, 'translate', off ? (portrait ? `0 ${(off * vh * 0.7).toFixed(2)}px` : `${(off * vw * 0.62).toFixed(2)}px 0`) : '');
+      w(el, 'opacity', off ? (1 - off).toFixed(3) : '');
+    }
+    w(embSec, 'visibility', x4 > 0 ? 'visible' : 'hidden');
+    if (x4 > 0) w(embEl, 'transform', `translate(${(emb.dx0 * (1 - o)).toFixed(2)}px,${(emb.dy0 * (1 - o)).toFixed(2)}px) scale(${Math.pow(emb.s0, 1 - o).toFixed(5)})`);
+    spin(o > 0.97 && x4 < B.out + B.spin + 150);                                     // landed and still on screen: keep turning
+    const nowActive = k > 0.98 && x4 <= 0;
     if (nowActive !== active) { active = nowActive; sec.classList.toggle('is-live', active); if (!active) close(); }
+  }
+
+  // ── act 4: the emblem keeps turning. The looping clip where alpha video plays (as in the intro); otherwise the still
+  // emblem turns in CSS 3D. Leaving, it finishes the turn it is in (quickly) and rests front-facing, like the nav emblem. ──
+  let ALPHA = window.SilencioAlphaExt, spinning = false, anim = null;
+  const SPIN = 0.667, TURN = 6000;                                                     // one turn in 6 s, as in the intro
+  embVid.addEventListener('ended', () => { embEl.classList.remove('is-playing'); embVid.currentTime = 0; });
+  embVid.addEventListener('error', () => cssFallback());
+  function cssFallback() {
+    if (!ALPHA) return; ALPHA = null; embVid.pause(); embEl.classList.remove('is-playing');
+    if (spinning) { spinning = false; spin(true); }
+  }
+  function spin(on) {
+    if (on === spinning) return; spinning = on;
+    if (ALPHA) {
+      if (on) {
+        embVid.loop = true; embVid.defaultPlaybackRate = embVid.playbackRate = SPIN;
+        embVid.play().then(() => {
+          const show = () => spinning && embEl.classList.add('is-playing');
+          embVid.requestVideoFrameCallback ? embVid.requestVideoFrameCallback(show) : show();
+        }).catch(cssFallback);                                                           // e.g. iOS Low Power Mode: the CSS turn
+      } else if (!embVid.paused) { embVid.loop = false; embVid.playbackRate = SPIN * 3; }
+      return;
+    }
+    if (on) {
+      const ease = 'cubic-bezier(.45,0,.55,1)';                                        // lingers on each face, quick through the edge
+      if (!anim) anim = embImg.animate([{ transform: 'perspective(2400px) rotateY(0deg)', easing: ease },
+        { transform: 'perspective(2400px) rotateY(180deg)', easing: ease }, { transform: 'perspective(2400px) rotateY(360deg)' }],
+        { duration: TURN, iterations: Infinity });
+      else { anim.effect.updateTiming({ iterations: Infinity }); anim.playbackRate = 1; anim.play(); }
+    } else if (anim) { anim.effect.updateTiming({ iterations: Math.max(1, Math.ceil(anim.currentTime / TURN)) }); anim.playbackRate = 3; }
   }
 
   // ── one render callback on the shared ticker, only while the section is on screen ──
@@ -1237,8 +1320,8 @@ window.SilencioVision = (() => {
     const dt = Math.min(0.05, deltaMs / 1000), ins = mode === 'inspect';
     st.inspectK = damp(st.inspectK, ins ? 1 : 0, 6, dt);
     // slow while a face is towards you, quick through the edge: angular speed rises with sin^4(yaw)
-    // (0.22 rad/s face-on, 2.2 rad/s edge-on: a few seconds on each face, under a second through the edge)
-    if (!ins) { const e = Math.sin(st.yawT) ** 2; st.yawT += dt * (0.352 + (2.2 - 0.352) * e * e); }   // faces: 0.22 rad/s +60%
+    // (0.528 rad/s face-on, 2.2 rad/s edge-on: a couple of seconds on each face, under a second through the edge)
+    if (!ins) { const e = Math.sin(st.yawT) ** 2; st.yawT += dt * (0.528 + (2.2 - 0.528) * e * e); }   // faces: 0.528 rad/s
     st.lift = damp(st.lift, st.hover && !ins ? 1 : 0, 7, dt);
     const tgt = ins ? st.insp : st.rest;
     st.pos.x = damp(st.pos.x, tgt.x, 5, dt); st.pos.y = damp(st.pos.y, tgt.y, 5, dt); st.pos.s = damp(st.pos.s, tgt.s, 5, dt);
@@ -1296,7 +1379,8 @@ addEventListener('DOMContentLoaded', () => {
   const fade = (el, o) => { w(el, 'opacity', o.toFixed(3)); w(el, 'visibility', o < 0.01 ? 'hidden' : ''); };
   let lastG = '';
   const ACT1 = 320, A2_AT = 0.62 * ACT1;                                    // svh
-  const BEATS = { turn: 160, cross: 70, vision: 110 };                    // svh: clip; the bar scrolls away as the vision rises; the vision holds
+  const BEATS = { turn: 160, cross: 70, vision: 130, out: 90, spin: 100 };   // svh: clip; the bar scrolls away as the vision rises; the vision holds;
+                                                                          // the card and words leave as the emblem comes down; the emblem turns
   const A2_LEN = Object.values(BEATS).reduce((a, b) => a + b, 0);
   scene.style.height = (100 + A2_AT + A2_LEN) + 'svh';
   const act2 = window.SilencioAct2;
