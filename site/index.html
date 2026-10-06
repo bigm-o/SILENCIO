@@ -217,9 +217,12 @@ html.js-motion:not(.hero-revealed) [data-reveal]{animation:reveal-failsafe 0s 30
 .menu-close span::after{rotate:-45deg}
 .menu-close:focus-visible,.menu-btn:focus-visible{outline:1px solid var(--gold);outline-offset:4px}
 
-@media (max-width:1023px){
+.nav .links a{white-space:nowrap}
+@media (max-width:1199px){   /* the four names need ~500px beside the centred logo: below this they live in the menu */
   .nav .links.left{display:none}
   .menu-btn{display:inline-flex;grid-column:1;grid-row:1;justify-self:start}
+}
+@media (max-width:1023px){
   .bar{grid-template-columns:repeat(3,1fr)}
   .cell.ask{grid-column:1/-1;box-shadow:inset 0 1px 0 rgba(255,255,255,.07);padding-top:20px;padding-bottom:20px}
 }
@@ -242,8 +245,10 @@ html.js-motion:not(.hero-revealed) [data-reveal]{animation:reveal-failsafe 0s 30
   .nav .logo{width:50px;height:50px}
   .motto{font-size:18px}
   .bar{left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom))}
-  .cell{padding:18px 14px 16px;gap:0}
-  .cell::before{left:14px;right:14px}
+  .bar{grid-template-columns:repeat(3,auto)}   /* columns sized to their words, so EXPERIENCES fits a 360px phone */
+  .cell{padding:18px 10px 16px;gap:0;align-items:center}
+  .cell .label{font-size:10px;letter-spacing:.2em}
+  .cell::before{left:10px;right:10px}
   .cell em{display:none}
   .cell.ask{padding:18px 16px 18px 18px}
   .cell.ask .arrow{width:38px;height:38px}
@@ -468,7 +473,7 @@ html.js-motion .emb4-e{position:absolute;left:50%;top:50%;width:auto;will-change
   <div class="layer fg" data-depth="-26"><div class="frame"><i class="reflect" aria-hidden="true"></i><picture><source media="(max-aspect-ratio: 1/1)" srcset="assets/img/hero-fg-portrait.webp"><img data-hero-critical src="assets/img/hero-fg.webp" alt="A white marble bust with gold-leaf hair, blindfolded in navy silk inlaid with the emblem in gold"></picture></div></div>
 
   <nav class="nav" aria-label="Main">
-    <div class="links left" data-reveal="0.55"><a href="#">The Club</a><a href="#">Dining</a><a href="#">Lounge</a><a href="#">Gatherings</a></div>
+    <div class="links left" data-reveal="0.55"><a href="#">Sujimoto</a><a href="#">Euphoria</a><a href="#">Real Estate</a><a href="#">Membership</a></div>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" data-reveal="0.55"><span class="lines" aria-hidden="true"></span>Menu</button>
     <a class="logo" href="#" aria-label="SILÊNCIO home"><img src="assets/img/emblem.webp" alt="" data-intro-logo-slot></a>
     <a class="btn outline cta" href="#" data-reveal="0.7">Request an introduction</a>
@@ -476,16 +481,16 @@ html.js-motion .emb4-e{position:absolute;left:50%;top:50%;width:auto;will-change
 
   <div class="menu" id="menu" hidden>
     <button class="menu-close" type="button" aria-label="Close menu"><span aria-hidden="true"></span></button>
-    <nav aria-label="Menu"><a href="#">The Club</a><a href="#">Dining</a><a href="#">Lounge</a><a href="#">Gatherings</a></nav>
+    <nav aria-label="Menu"><a href="#">Sujimoto</a><a href="#">Euphoria</a><a href="#">Real Estate</a><a href="#">Membership</a></nav>
     <a class="btn" href="#">Request an introduction</a>
   </div>
 
   <p class="motto" data-reveal="0.9" lang="la">Prîmus intêr pâres</p>
 
   <div class="bar glass" data-reveal="1.2">
-    <a class="cell" href="#"><span class="label">Dining</span><em>Japanese and Italian, for members</em></a>
-    <a class="cell" href="#"><span class="label">Lounge</span><em>After hours, in confidence</em></a>
-    <a class="cell" href="#"><span class="label">Gatherings</span><em>By invitation only</em></a>
+    <a class="cell" href="#"><span class="label">Privileges</span><em>Extended benefits across our houses</em></a>
+    <a class="cell" href="#"><span class="label">Network</span><em>Leaders, founders and tastemakers</em></a>
+    <a class="cell" href="#"><span class="label">Experiences</span><em>Private, and by invitation</em></a>
     <a class="cell ask" href="#">Request an introduction<span class="arrow" aria-hidden="true"></span></a>
   </div>
   <i class="hero-fade" aria-hidden="true"></i>
@@ -524,7 +529,7 @@ html.js-motion .emb4-e{position:absolute;left:50%;top:50%;width:auto;will-change
 <section class="vision" aria-labelledby="vz-title">
   <div class="vz-copy">
     <p class="label" data-wipe>Our vision</p>
-    <h2 id="vz-title" data-wipe>The benchmark for luxury, influence and belonging.</h2>
+    <h2 id="vz-title" data-wipe>The benchmark for luxury and influence.</h2>
     <div class="vz-body">
       <p data-wipe>To unite a carefully curated circle of successful individuals within an exclusive community built on influence, trust, opportunity, and shared success.</p>
       <p data-wipe>SILÊNCIO will become the benchmark for luxury lifestyle, elite networking, and exceptional experiences, bringing together accomplished leaders, entrepreneurs, innovators, and tastemakers in an environment designed to foster meaningful connections and lasting value.</p>
