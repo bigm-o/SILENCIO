@@ -394,7 +394,7 @@ html.js-motion .scene-pin .vz-logo{position:absolute}
 }
 /* ══ Act 4: the emblem ══ */
 .emb4{position:relative;height:100svh;min-height:360px;display:grid;place-items:center;background:#0B0B0D}
-.emb4-e{position:relative;width:min(84vw,90svh);aspect-ratio:1}
+.emb4-e{position:relative;width:min(42vw,45svh);aspect-ratio:1}
 .emb4-e>*{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
 .emb4-e video{opacity:0}
 .emb4-e.is-playing video{opacity:1}
@@ -1085,7 +1085,7 @@ window.SilencioVision = (() => {
     toLeft = parseFloat(getComputedStyle(ctx.nav).paddingLeft) - ctx.logo.offsetLeft;
     // act 4: the big emblem's frame (its ink is 66.2% of the frame, the nav emblem's 98.3% of its box), centred in the pin;
     // it starts exactly over the nav emblem at the top centre (scale s0, offset dx0/dy0) and grows into place
-    const ink = Math.min(vw * 0.78, vh * 0.6);
+    const ink = Math.min(vw * 0.39, vh * 0.3);
     emb.F = ink / 0.662; emb.s0 = r.width * 0.983 / ink;
     emb.dx0 = r.left + r.width / 2 - vw / 2; emb.dy0 = r.top + r.height / 2 - vh / 2;
     Object.assign(embEl.style, { width: emb.F + 'px', height: emb.F + 'px', marginLeft: -emb.F / 2 + 'px', marginTop: -emb.F / 2 + 'px' });
