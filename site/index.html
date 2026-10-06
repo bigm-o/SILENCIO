@@ -930,8 +930,10 @@ window.SilencioAct2 = (() => {
   // a stall, an error) the frame simply keeps the lounge picture it already shows: nothing changes inside it, and the
   // clips and the bar stills are never downloaded.
   const RATE = 1.65;                                      // natural speed x1.65
-  const CAN_VIDEO = matchMedia('(hover: hover) and (pointer: fine)').matches && innerWidth >= 1024 && innerHeight >= 600 &&
-    !window.SilencioLite;
+  // Turn clip switched off for now (owner's call): the frame keeps the lounge picture everywhere and nothing is downloaded.
+  // To bring it back, restore the line below in place of `false`.
+  // const CAN_VIDEO = matchMedia('(hover: hover) and (pointer: fine)').matches && innerWidth >= 1024 && innerHeight >= 600 && !window.SilencioLite;
+  const CAN_VIDEO = false;
   // the real test of the line: both clips (~8-17 MB) must arrive within this, i.e. a steady ~7 Mbps or better.
   // (connection.downlink is not used: Chrome's early estimate reads low even on fast lines)
   const DEADLINE = 20000;
