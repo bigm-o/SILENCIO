@@ -362,6 +362,17 @@ html.js-motion .a2-in{display:block;position:absolute;inset:0;opacity:0;backgrou
   backdrop-filter:blur(16px) saturate(110%);-webkit-backdrop-filter:blur(16px) saturate(110%);transition:opacity .8s var(--ease)}
 .vz-gl{position:absolute;inset:0;width:100%;height:100%;z-index:3;display:none}
 .vz-hit{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* keyboard / screen reader access */
+/* the quiet invitation under the card: hairline · small spaced capitals · hairline; only once the live card can be opened */
+.vz-cta{position:absolute;z-index:4;left:0;top:0;display:none;align-items:center;gap:16px;transform:translateX(-50%);padding:10px 4px;
+  background:none;border:0;cursor:pointer;white-space:nowrap;font:500 10px/1 Manrope,sans-serif;letter-spacing:.36em;text-transform:uppercase;
+  color:rgba(236,235,239,.5);opacity:0;pointer-events:none;transition:opacity 1.4s var(--ease),color .7s var(--ease)}
+.vz-cta span{margin-right:-.36em}   /* the trailing letter-space, so the words sit truly centred between the lines */
+.vz-cta::before,.vz-cta::after{content:"";width:22px;height:1px;background:currentColor;opacity:.55;transition:width .9s var(--ease),opacity .9s var(--ease)}
+.vz-cta:hover{color:rgba(236,235,239,.92)}
+.vz-cta:hover::before,.vz-cta:hover::after{width:36px;opacity:.8}
+html.js-motion .vz-cta{display:inline-flex}
+.vision.is-live.has-card .vz-cta{opacity:1;pointer-events:auto;transition-delay:.5s,0s}
+html.vz-inspecting .vision.is-live.has-card .vz-cta{opacity:0;pointer-events:none;transition-delay:0s}
 .vz-ui{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .6s var(--ease)}
 .vz-hint{position:absolute;left:0;right:0;bottom:max(32px,5svh);text-align:center;font:500 11px/1 Manrope,sans-serif;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
 .vz-close{position:absolute;top:26px;right:var(--pad);display:inline-flex;align-items:center;gap:12px;height:44px;padding:0 4px;background:none;border:0;cursor:pointer;
@@ -539,6 +550,7 @@ html.js-motion .emb4-e{position:absolute;left:50%;top:50%;width:auto;will-change
   <i class="vz-blur" aria-hidden="true"></i>
   <canvas class="vz-gl" aria-hidden="true"></canvas>
   <button class="vz-hit" type="button">Inspect the membership card</button>
+  <button class="vz-cta" type="button" tabindex="-1" aria-hidden="true"><span>Click to view card</span></button>
   <div class="vz-ui" aria-live="polite">
     <p class="vz-hint">Drag to turn &nbsp;·&nbsp; click the card to flip it</p>
     <button class="vz-close" type="button" aria-label="Close the card"><span aria-hidden="true"></span>Close</button>
@@ -1071,6 +1083,8 @@ window.SilencioVision = (() => {
   const Q = s => document.querySelector(s), QA = s => [...document.querySelectorAll(s)];
   const sec = Q('.vision'), canvas = Q('.vz-gl'), still = Q('.vz-still'), blur = Q('.vz-blur'), ui = Q('.vz-ui');
   const closeBtn = Q('.vz-close'), hitBtn = Q('.vz-hit'), vlogo = Q('.vz-logo'), words = QA('.vision [data-wipe]'), copyEl = Q('.vz-copy');
+  const cta = Q('.vz-cta');
+  if (matchMedia('(hover: none)').matches) cta.firstElementChild.textContent = 'Tap to view card';
   const embSec = Q('.emb4'), embEl = Q('.emb4-e'), embImg = Q('.emb4-e img'), embVid = Q('.emb4-e video');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const emb = { F: 1, s0: 1, dx0: 0, dy0: 0 };
@@ -1101,11 +1115,12 @@ window.SilencioVision = (() => {
     const a = st ? st.cardH / st.cardW : 0.65;                                        // height / width
     let cx = vw * 0.71, cy = vh * 0.52, restW = Math.min(vw * 0.34, vh * 0.62);
     if (portrait) {
-      const top = window.SilencioRest(copyEl).bottom + 24, bottom = vh - Math.max(48, vh * 0.08);   // room for the reflection
+      const top = window.SilencioRest(copyEl).bottom + 24, bottom = vh - Math.max(72, vh * 0.11);   // room for the reflection and the caption
       restW = Math.max(130, Math.min(vw * 0.74, vh * 0.42, (bottom - top) / a));
       cx = vw / 2; cy = Math.max(top + restW * a / 2, (top + bottom) / 2);
     }
     still.style.width = restW + 'px'; still.style.left = cx - restW / 2 + 'px'; still.style.top = cy - restW * a / 2 + 'px';
+    cta.style.left = cx + 'px'; cta.style.top = cy + restW * a / 2 + Math.max(18, restW * a * 0.16) + 'px';   // under the card, over its faint reflection
     if (!st) return;
     const { cam, renderer } = st;
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.setSize(vw, vh, false);   // full-screen canvas: 1.5x is plenty for a card
@@ -1178,7 +1193,7 @@ window.SilencioVision = (() => {
                pos: { x: 0, y: 0, s: 1 }, yaw: -0.5, pitch: 0, yawT: -0.5, pitchT: 0, lift: 0, hover: false, tiltX: 0, tiltY: 0, inspectK: 0, ready: false };
         layout();
         Object.assign(st.pos, { x: st.rest.x, y: st.rest.y, s: st.rest.s });
-        st.ready = true; still.style.visibility = 'hidden';
+        st.ready = true; still.style.visibility = 'hidden'; sec.classList.add('has-card');
         bindPointer();
       });
     }).catch(() => {});
@@ -1248,6 +1263,7 @@ window.SilencioVision = (() => {
   }
   closeBtn.addEventListener('click', close);
   hitBtn.addEventListener('click', open);
+  cta.addEventListener('click', open);
 
   // ── scroll: x = svh scrolled into Act 3 ──
   function update(x) {
@@ -1276,6 +1292,7 @@ window.SilencioVision = (() => {
     const off = x4 > 0 ? o : 0;
     w(copyEl, 'translate', off ? (portrait ? `0 ${(-off * vh * 0.9).toFixed(2)}px` : `${(-off * vw * 0.62).toFixed(2)}px 0`) : '');
     w(copyEl, 'opacity', off ? (1 - off).toFixed(3) : '');
+    w(cta, 'translate', off ? (portrait ? `0 ${(off * vh * 0.7).toFixed(2)}px` : `${(off * vw * 0.62).toFixed(2)}px 0`) : '');   // leaves with the card
     for (const el of [canvas, still]) {
       w(el, 'translate', off ? (portrait ? `0 ${(off * vh * 0.7).toFixed(2)}px` : `${(off * vw * 0.62).toFixed(2)}px 0`) : '');
       w(el, 'opacity', off ? (1 - off).toFixed(3) : '');
