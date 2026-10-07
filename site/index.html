@@ -297,7 +297,13 @@ html.js-motion .scene-pin>.hero{position:absolute;inset:0;min-height:0}
 html.js-motion .bar-section{position:absolute;inset:0;z-index:5;background:none;pointer-events:none;min-height:0}
 html.js-motion .bar-section .floor{display:none}                 /* the hero's world image is the floor */
 html.js-motion .bar-shade,html.js-motion .arch-wrap{opacity:0}
-html.js-motion .bar-copy [data-wipe]{clip-path:inset(0 100% 0 0)}
+/* Section text is timed, not scrubbed: when its section arrives the container gets .is-in and the lines write in one after
+   another (--i) and stay; when the section leaves, either way, they slide back out, quicker and together. The scroll only
+   decides when, never how far. */
+html.js-motion [data-wipe]{clip-path:inset(-0.2em 100% -0.3em 0);translate:0 14px;
+  transition:clip-path .6s cubic-bezier(.5,0,.75,0),translate .6s cubic-bezier(.5,0,.75,0)}
+html.js-motion .is-in [data-wipe]{clip-path:inset(-0.2em 0% -0.3em 0);translate:0 0;
+  transition:clip-path 1.3s var(--ease) calc(var(--i,0) * .16s),translate 1.3s var(--ease) calc(var(--i,0) * .16s)}
 /* perf: promote every per-frame-animated element to its own compositor layer up front, so Safari isn't
    deciding whether to do that mid-scroll (a common source of the first-frame stutter / later jank). */
 html.js-motion .hero .bg .frame,html.js-motion .hero .fg .frame,html.js-motion .hero .bar .cell,
@@ -339,8 +345,7 @@ html.js-motion .hero .bar.glass::before{will-change:opacity}
 .a2-copy .small{margin-top:16px;font:500 11px/1 Manrope,sans-serif;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
 html.js-motion .act2{display:block;position:absolute;inset:0;z-index:6;pointer-events:none;background:none;min-height:0;overflow:visible}
 html.js-motion .a2-still{display:none}
-html.js-motion .a2-copy{bottom:auto;visibility:hidden}
-html.js-motion .a2-copy [data-wipe]{clip-path:inset(0 100% 0 0);will-change:clip-path,translate}
+html.js-motion .a2-copy{bottom:auto}
 .a2-in{display:none}
 html.js-motion .a2-in{display:block;position:absolute;inset:0;opacity:0;background:#140F0C}
 .arch .a2-layer{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:fill;transform-origin:0 0;will-change:transform;display:block}
@@ -391,7 +396,6 @@ html.js-motion .vision::before{content:"";position:absolute;left:0;right:0;botto
   background:linear-gradient(180deg,rgba(11,11,13,0),rgba(11,11,13,.55) 55%,#0B0B0D)}
 html.js-motion .vz-gl{display:block;pointer-events:none}
 html.js-motion .vision.is-live .vz-gl{pointer-events:auto}
-html.js-motion .vision [data-wipe]{clip-path:inset(0 100% 0 0);will-change:clip-path,translate}
 html.js-motion .vz-logo{display:block;position:fixed;z-index:20;visibility:hidden;pointer-events:none}
 html.js-motion .scene-pin .vz-logo{position:absolute}
 @media (max-aspect-ratio:1/1){
@@ -901,7 +905,7 @@ window.SilencioAct2 = (() => {
   const CENTRE_Y = 0.43;                                    // the frame's centre lands a little above the middle: room for the words
   const Q = s => document.querySelector(s), QA = s => [...document.querySelectorAll(s)];
   const inner = Q('.a2-in'), f0 = Q('.a2-f0'), f1 = Q('.a2-f1'), vF = Q('.a2-turn'), vR = Q('.a2-turn-rev');
-  const copy = Q('.a2-copy'), words = QA('.a2-copy [data-wipe]'), heroFade = Q('.hero-fade');
+  const copy = Q('.a2-copy'), heroFade = Q('.hero-fade');
   let K, card = {}, G = null, bw = 1, bh = 1, portrait = false;
   const w = window.SilencioStyle;                           // style writes that skip unchanged values
 
@@ -1041,18 +1045,12 @@ window.SilencioAct2 = (() => {
     if (on) w(card.arch, 'translate', `${(G.dx * mv).toFixed(2)}px ${(G.dy * mv).toFixed(2)}px`);
     w(card.arch, 'scale', on ? (1 + 0.2 * mv).toFixed(4) : '');
     const exit = out3(seg(x, 0, Bt.turn * 0.3));
-    w(card.copy, 'translate', on ? `${(-exit * 80).toFixed(1)}px 0` : ''); w(card.copy, 'opacity', on ? (1 - exit).toFixed(3) : '');
     w(card.shade, 'opacity', on ? (1 - exit * 0.6).toFixed(3) : '');
     w(card.reflect, 'opacity', on ? (0.3 * (1 - mv)).toFixed(3) : '');
     w(inner, 'opacity', P.mode === 'video' && (x > K.TRIG || P.pos > 0.02) ? 1 : 0);   // still: the card's own picture shows through
     w(heroFade, 'opacity', on ? mv.toFixed(3) : 0);     // the floor's glow fades at the bottom (an overlay: no per-frame mask repaint)
-    // the new words: label, line, small line, each rising and writing in; the last finishes after the release
-    const w0 = Bt.turn * 0.35, span = Bt.turn * 0.38, step = Bt.turn * 0.17;
-    w(copy, 'visibility', x > w0 ? 'visible' : 'hidden');
-    words.forEach((el, i) => {
-      const k = out3(seg(x, w0 + i * step, w0 + i * step + span));
-      w(el, 'clipPath', `inset(-0.2em ${((1 - k) * 100).toFixed(2)}% -0.3em 0)`); w(el, 'translate', `0 ${((1 - k) * 14).toFixed(2)}px`);
-    });
+    // the new words: in once the frame is nearly centred, out as the bar scene starts to leave for the vision
+    copy.classList.toggle('is-in', x > Bt.turn * 0.35 && x < Bt.turn + 4);
   }
   // the picture inside the frame follows the clip's own progress, every frame it plays
   function placeAll() {
@@ -1082,7 +1080,7 @@ window.SilencioAct2 = (() => {
 window.SilencioVision = (() => {
   const Q = s => document.querySelector(s), QA = s => [...document.querySelectorAll(s)];
   const sec = Q('.vision'), canvas = Q('.vz-gl'), still = Q('.vz-still'), blur = Q('.vz-blur'), ui = Q('.vz-ui');
-  const closeBtn = Q('.vz-close'), hitBtn = Q('.vz-hit'), vlogo = Q('.vz-logo'), words = QA('.vision [data-wipe]'), copyEl = Q('.vz-copy');
+  const closeBtn = Q('.vz-close'), hitBtn = Q('.vz-hit'), vlogo = Q('.vz-logo'), copyEl = Q('.vz-copy');
   const cta = Q('.vz-cta');
   if (matchMedia('(hover: none)').matches) cta.firstElementChild.textContent = 'Tap to view card';
   const embSec = Q('.emb4'), embEl = Q('.emb4-e'), embImg = Q('.emb4-e img'), embVid = Q('.emb4-e video');
@@ -1283,15 +1281,10 @@ window.SilencioVision = (() => {
     w(ctx.logo, 'visibility', on ? 'hidden' : '');
     w(vlogo, 'visibility', on && x4 <= 0 ? 'visible' : 'hidden');
     w(vlogo, 'translate', `${(toLeft * (1 - kl)).toFixed(2)}px 0`);
-    words.forEach((el, i) => {
-      const q = out3(seg(x, B.cross * (0.55 + i * 0.12), B.cross * (0.55 + i * 0.12) + B.cross * 0.5));
-      w(el, 'clipPath', `inset(-0.2em ${((1 - q) * 100).toFixed(2)}% -0.3em 0)`); w(el, 'translate', `0 ${((1 - q) * 14).toFixed(2)}px`);
-    });
-    // act 4: the words slide off to the left (up, in portrait), the card to the right (down); the emblem, from where it sits
+    copyEl.classList.toggle('is-in', x > B.cross * 0.6 && x4 <= 0);              // in once the section has mostly risen, out as act 4 begins
+    // act 4: the words have gone (timed, above); the card slides off to the right (down, in portrait); the emblem, from where it sits
     // at the top centre, comes down to the centre of the screen and grows (log-scale, so the growth reads even), then turns
     const off = x4 > 0 ? o : 0;
-    w(copyEl, 'translate', off ? (portrait ? `0 ${(-off * vh * 0.9).toFixed(2)}px` : `${(-off * vw * 0.62).toFixed(2)}px 0`) : '');
-    w(copyEl, 'opacity', off ? (1 - off).toFixed(3) : '');
     w(cta, 'translate', off ? (portrait ? `0 ${(off * vh * 0.7).toFixed(2)}px` : `${(off * vw * 0.62).toFixed(2)}px 0`) : '');   // leaves with the card
     for (const el of [canvas, still]) {
       w(el, 'translate', off ? (portrait ? `0 ${(off * vh * 0.7).toFixed(2)}px` : `${(off * vw * 0.62).toFixed(2)}px 0`) : '');
@@ -1392,7 +1385,8 @@ addEventListener('DOMContentLoaded', () => {
   const world = Q('.hero .bg .frame'), worldImg = Q('.hero img.world'), fg = Q('.hero .fg');
   const cells = QA('.hero .bar .cell'), glass = Q('.hero .bar'), motto = Q('.hero .motto');
   const links = QA('.hero .nav .links a'), menuBtn = Q('.hero .menu-btn'), cta = Q('.hero .nav .cta'), logo = Q('.hero .nav .logo'), nav = Q('.hero .nav');
-  const shade = Q('.bar-shade'), arch = Q('.arch-wrap'), photo = Q('.arch img'), words = QA('.bar-copy [data-wipe]');
+  const shade = Q('.bar-shade'), arch = Q('.arch-wrap'), photo = Q('.arch img'), barCopy = Q('.bar-copy');
+  ['.bar-copy', '.a2-copy', '.vz-copy'].forEach(c => QA(c + ' [data-wipe]').forEach((el, i) => el.style.setProperty('--i', i)));   // the stagger order
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const seg = (p, a, b) => clamp((p - a) / (b - a));
   const out3 = t => 1 - Math.pow(1 - t, 3), io3 = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -1406,7 +1400,7 @@ addEventListener('DOMContentLoaded', () => {
   scene.style.height = (100 + A2_AT + A2_LEN) + 'svh';
   const act2 = window.SilencioAct2;
   if (act2) act2.init({ BEATS, TRIG: 0.40 * ACT1 - A2_AT, clamp, seg, io3, out3, cards:   // TRIG: the lounge frame has landed (act 1's 0.365) and settled
-                        { arch, pane: Q('.arch .pane'), reflect: Q('.arch-reflect'), copy: Q('.bar-copy'), shade, logo, hero } });
+                        { arch, pane: Q('.arch .pane'), reflect: Q('.arch-reflect'), shade, logo, hero } });
   const vision = window.SilencioVision;
   if (vision) vision.init({ BEATS, clamp, seg, io3, out3, ctx: { logo, nav, lift: [hero, Q('.bar-section'), Q('.act2')] } });
 
@@ -1448,6 +1442,7 @@ addEventListener('DOMContentLoaded', () => {
     const scrolled = scrollY - m.sceneTopAbs;
     const sv = scrolled / m.pinVh * 100;                                    // svh scrolled into the scene
     if (act2 && sv !== lastSv) { lastSv = sv; act2.update(sv - A2_AT); if (vision) vision.update(sv - A2_AT - BEATS.turn); }
+    barCopy.classList.toggle('is-in', sv >= 0.3 * ACT1 && sv < A2_AT + 4);   // the lounge words: in once its frame has risen, out as act 2 moves it
     const p = clamp(sv / ACT1);
     if (act2 && !preloaded && p > 0.05) { preloaded = true; act2.preload(); if (vision) vision.preload(); }
     if (p === last && !m.dirty) return;
@@ -1483,7 +1478,6 @@ addEventListener('DOMContentLoaded', () => {
     if (sv < A2_AT) { w(shade, 'opacity', seg(p, 0.14, 0.32).toFixed(3)); w(arch, 'translate', `0 ${((1 - a) * vh * 0.55).toFixed(2)}px`); }
     w(arch, 'opacity', clamp(a * 1.6).toFixed(3));
     w(photo, 'scale', (1.2 - 0.2 * a).toFixed(4));            // settles to exactly 1, so Act 2 can take over from the card pixel-for-pixel
-    words.forEach((el, i) => { const k = out3(seg(p, 0.28 + i * 0.07, 0.44 + i * 0.07)); w(el, 'clipPath', `inset(0 ${((1 - k) * 100).toFixed(2)}% 0 0)`); });
   });
 });
 </script>
